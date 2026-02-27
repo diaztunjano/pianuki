@@ -21,7 +21,7 @@ A piano learner can sit at their real piano, start the game in a browser, and pr
 - [ ] Top-down tower defense gameplay with enemy waves on a path
 - [ ] Enemies labeled with musical concepts (notes, intervals, chords, scales)
 - [ ] Playing correct note/chord = direct attack on corresponding enemy
-- [ ] Pixel art / retro visual style
+- [ ] Placeholder visuals sufficient for gameplay (pixel art deferred to v2)
 - [ ] Skill tree progression with branching paths (notes → intervals → chords → scales → progressions)
 - [ ] Adaptive difficulty engine that adjusts based on player accuracy and reaction time
 - [ ] Visible player stats (accuracy, speed, adaptation feedback)
@@ -44,7 +44,7 @@ A piano learner can sit at their real piano, start the game in a browser, and pr
 - Primary input is acoustic piano captured via the device microphone, processed through Web Audio API for pitch detection. This is the core technical challenge — real-time, accurate frequency detection in a browser environment.
 - MIDI input via Web MIDI API serves as a secondary, more precise input method for players with digital keyboards.
 - The game must feel responsive — latency between playing a note and seeing the attack on screen must be minimal for the gameplay to feel satisfying.
-- Pixel art style chosen for achievability and lightweight rendering — Canvas-based rendering is the likely approach.
+- v1 uses placeholder visuals (colored shapes, text labels) — pixel art style deferred to v2. Canvas-based rendering is the likely approach.
 - The pedagogical model follows a skill tree rather than a fixed curriculum, allowing players at different levels to choose their learning path.
 - The adaptive difficulty system should show its work — players see their stats and can observe how the game adjusts, making the learning transparent.
 
@@ -61,12 +61,12 @@ A piano learner can sit at their real piano, start the game in a browser, and pr
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
 | Acoustic piano via mic as primary input | The whole point is playing a real instrument, not pressing computer keys | — Pending |
-| Pixel art / retro aesthetic | Achievable scope, lightweight rendering, charming feel | — Pending |
+| Pixel art / retro aesthetic | Achievable scope, lightweight rendering, charming feel | Deferred to v2 — functionality first |
 | Skill tree over linear curriculum | Different players at different levels; branching respects diverse learning paths | — Pending |
 | Configurable mistake penalties | Different learners benefit from different feedback models | — Pending |
 | localStorage over accounts | Simplifies v1 massively; no backend needed | — Pending |
 | Visible adaptive difficulty | Player sees their stats and the system adjusting; transparency builds trust in the tutor | — Pending |
-| Canvas 2D over WebGL | Pixel art doesn't need 3D; simpler to implement and debug | — Pending |
+| Canvas 2D over WebGL | 2D game doesn't need 3D; simpler to implement and debug | — Pending |
 
 ---
 *Last updated: 2026-02-27 after initialization*

@@ -46,9 +46,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### UI / Visual
 
-- [ ] **UIVS-01**: Game uses pixel art / retro visual style
 - [ ] **UIVS-02**: Basic HUD displays health, wave count, and currently detected note
-- [ ] **UIVS-03**: Visual feedback on correct input (enemy damage/defeat animation)
+- [ ] **UIVS-03**: Visual feedback on correct input (enemy damage/removal effect)
 - [ ] **UIVS-04**: Visual feedback on incorrect input (distinct from correct feedback)
 
 ### Player Settings
@@ -80,6 +79,7 @@ Deferred to future release. Tracked but not in current roadmap.
 
 ### UI / Visual
 
+- **UIVS-01**: Game uses pixel art / retro visual style (deferred from v1)
 - **UIVS-05**: Toggle-able virtual piano keyboard on screen
 - **UIVS-06**: Per-concept accuracy display in-game
 
@@ -130,7 +130,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PROG-02 | Phase 3 | Pending |
 | PROG-03 | Phase 3 | Pending |
 | PROG-04 | Phase 3 | Pending |
-| UIVS-01 | Phase 2 | Pending |
+| UIVS-01 | v2 | Deferred |
 | UIVS-02 | Phase 2 | Pending |
 | UIVS-03 | Phase 2 | Pending |
 | UIVS-04 | Phase 2 | Pending |
@@ -139,9 +139,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SETT-03 | Phase 3 | Pending |
 
 **Coverage:**
-- v1 requirements: 32 total
-- Mapped to phases: 32
+- v1 requirements: 31 total
+- Mapped to phases: 31
 - Unmapped: 0 ✓
+- Deferred to v2: 1 (UIVS-01)
 
 ---
 *Requirements defined: 2026-02-27*

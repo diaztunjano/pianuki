@@ -27,16 +27,16 @@ Decimal phases appear between their surrounding integers in numeric order.
   1. Player can play any note on acoustic piano via microphone and see the detected note name appear on screen with <100ms visible response
   2. Player can plug in a MIDI keyboard and notes are detected immediately without configuration
   3. Both acoustic and MIDI inputs produce the same NoteOn/NoteOff events (verified by a debug display showing unified events)
-  4. Static pixel art game world (path, background) renders correctly in a Chrome browser at target resolution
+  4. Game canvas renders with placeholder visuals (colored shapes for path, basic background) in a Chrome browser at target resolution
 **Plans**: TBD
 
 ### Phase 2: Core Loop
 **Goal**: The game is playable end-to-end — enemies walk the path, the player plays correct notes to defeat them, waves spawn and complete, and the HUD keeps the player oriented
 **Depends on**: Phase 1
-**Requirements**: GAME-01, GAME-02, GAME-03, GAME-04, GAME-05, GAME-06, GAME-07, GAME-08, GAME-09, MUSC-01, MUSC-02, MUSC-03, MUSC-04, MUSC-05, UIVS-01, UIVS-02, UIVS-03, UIVS-04, AINP-07
+**Requirements**: GAME-01, GAME-02, GAME-03, GAME-04, GAME-05, GAME-06, GAME-07, GAME-08, GAME-09, MUSC-01, MUSC-02, MUSC-03, MUSC-04, MUSC-05, UIVS-02, UIVS-03, UIVS-04, AINP-07
 **Success Criteria** (what must be TRUE):
   1. Player can start a level and see enemies labeled with note names walking along a visible path toward a goal
-  2. Playing the correct note on the piano causes the corresponding enemy to take damage and play a defeat animation when killed
+  2. Playing the correct note on the piano causes the corresponding enemy to take damage and show visual feedback when defeated
   3. Playing an incorrect note produces a distinct visual effect different from a correct hit
   4. Player survives or loses HP across 3-5 waves per level, with a wave-clear screen appearing between waves
   5. Player can pause and resume gameplay at any time; game over screen appears when HP reaches zero with restart and menu options
