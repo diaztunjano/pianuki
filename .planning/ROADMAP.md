@@ -28,7 +28,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Player can plug in a MIDI keyboard and notes are detected immediately without configuration
   3. Both acoustic and MIDI inputs produce the same NoteOn/NoteOff events (verified by a debug display showing unified events)
   4. Game canvas renders with placeholder visuals (colored shapes for path, basic background) in a Chrome browser at target resolution
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 01-01-PLAN.md — Game scaffold, layout, and rendering foundation (Vite + TypeScript, NoteEvent types, GameEventBus, CSS Grid layout, game canvas with L-shape path, 88-key keyboard strip, debug panel)
+- [ ] 01-02-PLAN.md — MIDI + microphone audio input pipeline (Web MIDI API input, microphone pitch detection via pitchy, InputBroker unified dispatch, end-to-end event flow to keyboard strip and debug panel)
+- [ ] 01-03-PLAN.md — Human verification checkpoint (verify audio pipeline and game scaffold with real hardware)
 
 ### Phase 2: Core Loop
 **Goal**: The game is playable end-to-end — enemies walk the path, the player plays correct notes to defeat them, waves spawn and complete, and the HUD keeps the player oriented
@@ -71,7 +75,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/TBD | Not started | - |
+| 1. Foundation | 0/3 | Not started | - |
 | 2. Core Loop | 0/TBD | Not started | - |
 | 3. Complete Game | 0/TBD | Not started | - |
 | 4. UX Polish | 0/TBD | Not started | - |
