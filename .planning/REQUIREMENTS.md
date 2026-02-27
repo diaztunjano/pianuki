@@ -11,7 +11,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [ ] **AINP-01**: Player can use acoustic piano via microphone for single note detection (Web Audio API pitch detection)
 - [ ] **AINP-02**: Player can use MIDI keyboard as secondary input method (Web MIDI API)
-- [ ] **AINP-03**: Both input methods produce unified NoteOn/NoteOff events to the game
+- [x] **AINP-03**: Both input methods produce unified NoteOn/NoteOff events to the game
 - [ ] **AINP-04**: Player sees a headphone requirement screen on first launch before gameplay
 - [ ] **AINP-05**: Player sees an explanation of why microphone access is needed before the browser permission prompt
 - [ ] **AINP-06**: Player can adjust latency offset via slider in settings
@@ -107,7 +107,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | AINP-01 | Phase 1 | Pending |
 | AINP-02 | Phase 1 | Pending |
-| AINP-03 | Phase 1 | Pending |
+| AINP-03 | Phase 1 | Complete |
 | AINP-04 | Phase 4 | Pending |
 | AINP-05 | Phase 4 | Pending |
 | AINP-06 | Phase 4 | Pending |
