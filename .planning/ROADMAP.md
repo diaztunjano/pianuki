@@ -30,8 +30,8 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Game canvas renders with placeholder visuals (colored shapes for path, basic background) in a Chrome browser at target resolution
 **Plans:** 3 plans
 Plans:
-- [ ] 01-01-PLAN.md — Game scaffold, layout, and rendering foundation (Vite + TypeScript, NoteEvent types, GameEventBus, CSS Grid layout, game canvas with L-shape path, 88-key keyboard strip, debug panel)
-- [ ] 01-02-PLAN.md — MIDI + microphone audio input pipeline (Web MIDI API input, microphone pitch detection via pitchy, InputBroker unified dispatch, end-to-end event flow to keyboard strip and debug panel)
+- [ ] 01-01-PLAN.md — React+Vite scaffold, Zustand store with InputEvent types, three-panel layout (game canvas with L-shape path, 88-key keyboard strip, dev-only debug panel), Tailwind v4, all dependencies
+- [ ] 01-02-PLAN.md — MIDI input hook (Web MIDI API) + microphone pitch detection hook (pitchy + AnalyserNode), unified NoteOn/NoteOff dispatch to Zustand store, mic activation button
 - [ ] 01-03-PLAN.md — Human verification checkpoint (verify audio pipeline and game scaffold with real hardware)
 
 ### Phase 2: Core Loop
