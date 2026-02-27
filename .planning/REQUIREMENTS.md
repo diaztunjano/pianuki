@@ -105,44 +105,44 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AINP-01 | — | Pending |
-| AINP-02 | — | Pending |
-| AINP-03 | — | Pending |
-| AINP-04 | — | Pending |
-| AINP-05 | — | Pending |
-| AINP-06 | — | Pending |
-| AINP-07 | — | Pending |
-| GAME-01 | — | Pending |
-| GAME-02 | — | Pending |
-| GAME-03 | — | Pending |
-| GAME-04 | — | Pending |
-| GAME-05 | — | Pending |
-| GAME-06 | — | Pending |
-| GAME-07 | — | Pending |
-| GAME-08 | — | Pending |
-| GAME-09 | — | Pending |
-| MUSC-01 | — | Pending |
-| MUSC-02 | — | Pending |
-| MUSC-03 | — | Pending |
-| MUSC-04 | — | Pending |
-| MUSC-05 | — | Pending |
-| PROG-01 | — | Pending |
-| PROG-02 | — | Pending |
-| PROG-03 | — | Pending |
-| PROG-04 | — | Pending |
-| UIVS-01 | — | Pending |
-| UIVS-02 | — | Pending |
-| UIVS-03 | — | Pending |
-| UIVS-04 | — | Pending |
-| SETT-01 | — | Pending |
-| SETT-02 | — | Pending |
-| SETT-03 | — | Pending |
+| AINP-01 | Phase 1 | Pending |
+| AINP-02 | Phase 1 | Pending |
+| AINP-03 | Phase 1 | Pending |
+| AINP-04 | Phase 4 | Pending |
+| AINP-05 | Phase 4 | Pending |
+| AINP-06 | Phase 4 | Pending |
+| AINP-07 | Phase 2 | Pending |
+| GAME-01 | Phase 2 | Pending |
+| GAME-02 | Phase 2 | Pending |
+| GAME-03 | Phase 2 | Pending |
+| GAME-04 | Phase 2 | Pending |
+| GAME-05 | Phase 2 | Pending |
+| GAME-06 | Phase 2 | Pending |
+| GAME-07 | Phase 2 | Pending |
+| GAME-08 | Phase 2 | Pending |
+| GAME-09 | Phase 2 | Pending |
+| MUSC-01 | Phase 2 | Pending |
+| MUSC-02 | Phase 2 | Pending |
+| MUSC-03 | Phase 2 | Pending |
+| MUSC-04 | Phase 2 | Pending |
+| MUSC-05 | Phase 2 | Pending |
+| PROG-01 | Phase 3 | Pending |
+| PROG-02 | Phase 3 | Pending |
+| PROG-03 | Phase 3 | Pending |
+| PROG-04 | Phase 3 | Pending |
+| UIVS-01 | Phase 2 | Pending |
+| UIVS-02 | Phase 2 | Pending |
+| UIVS-03 | Phase 2 | Pending |
+| UIVS-04 | Phase 2 | Pending |
+| SETT-01 | Phase 3 | Pending |
+| SETT-02 | Phase 3 | Pending |
+| SETT-03 | Phase 3 | Pending |
 
 **Coverage:**
 - v1 requirements: 32 total
-- Mapped to phases: 0
-- Unmapped: 32 ⚠️
+- Mapped to phases: 32
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-02-27*
-*Last updated: 2026-02-27 after initial definition*
+*Last updated: 2026-02-27 after roadmap creation*
