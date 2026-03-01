@@ -1,5 +1,8 @@
 import { create, StateCreator } from 'zustand'
 import { devtools } from 'zustand/middleware'
+import { immer } from 'zustand/middleware/immer'
+import { Enemy, EnemySpawnEntry, buildEnemy } from '../game/enemyTypes'
+import { LEVEL_CONFIGS } from '../game/waveConfig'
 
 // --- Shared Event Type ---
 
@@ -28,7 +31,7 @@ interface AudioSlice {
 
 const createAudioSlice: StateCreator<
   BoundStore,
-  [['zustand/devtools', never]],
+  [['zustand/devtools', never], ['zustand/immer', never]],
   [],
   AudioSlice
 > = (set) => ({
@@ -55,19 +58,234 @@ const createAudioSlice: StateCreator<
     ),
 })
 
-// --- Game Slice (stub for Phase 1) ---
+// --- Game Slice ---
 
 interface GameSlice {
-  gamePhase: 'idle' | 'playing' | 'paused'
+  // FSM state
+  gamePhase: 'idle' | 'playing' | 'paused' | 'wave-clear' | 'gameover'
+
+  // Player state
+  playerHP: number
+  maxPlayerHP: number
+
+  // Wave / level state
+  currentWave: number
+  totalWaves: number
+  currentLevel: number
+
+  // Enemy state
+  enemies: Enemy[]
+  spawnQueue: EnemySpawnEntry[]
+  spawnAccumulator: number
+  spawnIntervalMs: number
+
+  // Visual feedback
+  wrongNoteFlashFrames: number
+
+  // Actions
+  startGame: (levelIndex: number) => void
+  pauseGame: () => void
+  resumeGame: () => void
+  advanceWave: () => void
+  spawnEnemy: (entry: EnemySpawnEntry) => void
+  damageEnemy: (id: string, damage: number) => void
+  tickDyingEnemies: () => void
+  removeDeadEnemies: () => void
+  enemyReachedGoal: (id: string) => void
+  triggerWrongNote: () => void
+  tickWrongNoteFlash: () => void
+  resetGame: () => void
 }
 
 const createGameSlice: StateCreator<
   BoundStore,
-  [['zustand/devtools', never]],
+  [['zustand/devtools', never], ['zustand/immer', never]],
   [],
   GameSlice
-> = () => ({
+> = (set) => ({
+  // --- Default state ---
   gamePhase: 'idle',
+  playerHP: 5,
+  maxPlayerHP: 5,
+  currentWave: 0,
+  totalWaves: 0,
+  currentLevel: 0,
+  enemies: [],
+  spawnQueue: [],
+  spawnAccumulator: 0,
+  spawnIntervalMs: 2000,
+  wrongNoteFlashFrames: 0,
+
+  // --- Actions ---
+
+  startGame: (levelIndex) =>
+    set(
+      (draft) => {
+        const level = LEVEL_CONFIGS[levelIndex]
+        if (!level) return
+        const wave = level.waves[0]
+        draft.gamePhase = 'playing'
+        draft.playerHP = draft.maxPlayerHP
+        draft.currentLevel = levelIndex
+        draft.currentWave = 0
+        draft.totalWaves = level.waves.length
+        draft.enemies = []
+        draft.spawnQueue = [...wave.enemies]
+        draft.spawnIntervalMs = wave.spawnIntervalMs
+        draft.spawnAccumulator = 0
+        draft.wrongNoteFlashFrames = 0
+      },
+      false,
+      'game/startGame',
+    ),
+
+  pauseGame: () =>
+    set(
+      (draft) => {
+        if (draft.gamePhase === 'playing') {
+          draft.gamePhase = 'paused'
+        }
+      },
+      false,
+      'game/pauseGame',
+    ),
+
+  resumeGame: () =>
+    set(
+      (draft) => {
+        if (draft.gamePhase === 'paused') {
+          draft.gamePhase = 'playing'
+        }
+      },
+      false,
+      'game/resumeGame',
+    ),
+
+  advanceWave: () =>
+    set(
+      (draft) => {
+        const level = LEVEL_CONFIGS[draft.currentLevel]
+        if (!level) return
+        const nextWaveIndex = draft.currentWave + 1
+        if (nextWaveIndex < level.waves.length) {
+          const nextWave = level.waves[nextWaveIndex]
+          draft.currentWave = nextWaveIndex
+          draft.spawnQueue = [...nextWave.enemies]
+          draft.spawnIntervalMs = nextWave.spawnIntervalMs
+          draft.spawnAccumulator = 0
+          draft.gamePhase = 'playing'
+        } else {
+          // All waves complete — return to menu (level clear)
+          draft.gamePhase = 'idle'
+        }
+      },
+      false,
+      'game/advanceWave',
+    ),
+
+  spawnEnemy: (entry) =>
+    set(
+      (draft) => {
+        draft.enemies.push(buildEnemy(entry))
+      },
+      false,
+      'game/spawnEnemy',
+    ),
+
+  damageEnemy: (id, damage) =>
+    set(
+      (draft) => {
+        const enemy = draft.enemies.find((e: Enemy) => e.id === id)
+        if (!enemy) return
+        enemy.hp -= damage
+        if (enemy.hp <= 0) {
+          enemy.state = 'dying'
+          enemy.defeatedFrames = 12
+        }
+      },
+      false,
+      'game/damageEnemy',
+    ),
+
+  tickDyingEnemies: () =>
+    set(
+      (draft) => {
+        for (const enemy of draft.enemies) {
+          if (enemy.state === 'dying') {
+            enemy.defeatedFrames -= 1
+            if (enemy.defeatedFrames <= 0) {
+              enemy.state = 'dead'
+            }
+          }
+        }
+      },
+      false,
+      'game/tickDyingEnemies',
+    ),
+
+  removeDeadEnemies: () =>
+    set(
+      (draft) => {
+        draft.enemies = draft.enemies.filter((e: Enemy) => e.state !== 'dead')
+      },
+      false,
+      'game/removeDeadEnemies',
+    ),
+
+  enemyReachedGoal: (id) =>
+    set(
+      (draft) => {
+        const enemy = draft.enemies.find((e: Enemy) => e.id === id)
+        if (enemy) {
+          enemy.state = 'dead'
+        }
+        draft.playerHP -= 1
+        if (draft.playerHP <= 0) {
+          draft.gamePhase = 'gameover'
+        }
+      },
+      false,
+      'game/enemyReachedGoal',
+    ),
+
+  triggerWrongNote: () =>
+    set(
+      (draft) => {
+        draft.wrongNoteFlashFrames = 8
+      },
+      false,
+      'game/triggerWrongNote',
+    ),
+
+  tickWrongNoteFlash: () =>
+    set(
+      (draft) => {
+        if (draft.wrongNoteFlashFrames > 0) {
+          draft.wrongNoteFlashFrames -= 1
+        }
+      },
+      false,
+      'game/tickWrongNoteFlash',
+    ),
+
+  resetGame: () =>
+    set(
+      (draft) => {
+        draft.gamePhase = 'idle'
+        draft.playerHP = 5
+        draft.maxPlayerHP = 5
+        draft.currentWave = 0
+        draft.totalWaves = 0
+        draft.currentLevel = 0
+        draft.enemies = []
+        draft.spawnQueue = []
+        draft.spawnAccumulator = 0
+        draft.spawnIntervalMs = 2000
+        draft.wrongNoteFlashFrames = 0
+      },
+      false,
+      'game/resetGame',
+    ),
 })
 
 // --- Bound Store ---
@@ -76,10 +294,10 @@ type BoundStore = AudioSlice & GameSlice
 
 export const useBoundStore = create<BoundStore>()(
   devtools(
-    (...args) => ({
+    immer((...args) => ({
       ...createAudioSlice(...args),
       ...createGameSlice(...args),
-    }),
+    })),
     { name: 'pianuki-store' },
   ),
 )
