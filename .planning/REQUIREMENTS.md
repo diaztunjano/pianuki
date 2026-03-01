@@ -24,10 +24,10 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **GAME-03**: Enemies spawn in waves (3-5 waves per level)
 - [x] **GAME-04**: Player has a lives/HP system — enemies reaching the goal reduce HP
 - [x] **GAME-05**: HUD displays current HP, wave counter, and detected note
-- [ ] **GAME-06**: Player can pause and resume at any time during gameplay
-- [ ] **GAME-07**: Game over screen appears when HP reaches zero with option to restart or return to menu
+- [x] **GAME-06**: Player can pause and resume at any time during gameplay
+- [x] **GAME-07**: Game over screen appears when HP reaches zero with option to restart or return to menu
 - [x] **GAME-08**: Enemy plays a defeat animation when killed by correct input
-- [ ] **GAME-09**: Wave-clear screen appears between waves for upgrades/choices
+- [x] **GAME-09**: Wave-clear screen appears between waves for upgrades/choices
 
 ### Musical Content
 
@@ -117,10 +117,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GAME-03 | Phase 2 | Complete |
 | GAME-04 | Phase 2 | Complete |
 | GAME-05 | Phase 2 | Complete |
-| GAME-06 | Phase 2 | Pending |
-| GAME-07 | Phase 2 | Pending |
+| GAME-06 | Phase 2 | Complete |
+| GAME-07 | Phase 2 | Complete |
 | GAME-08 | Phase 2 | Complete |
-| GAME-09 | Phase 2 | Pending |
+| GAME-09 | Phase 2 | Complete |
 | MUSC-01 | Phase 2 | Complete |
 | MUSC-02 | Phase 2 | Complete |
 | MUSC-03 | Phase 2 | Complete |

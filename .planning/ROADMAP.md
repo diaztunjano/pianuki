@@ -44,7 +44,7 @@ Plans:
   3. Playing an incorrect note produces a distinct visual effect different from a correct hit
   4. Player survives or loses HP across 3-5 waves per level, with a wave-clear screen appearing between waves
   5. Player can pause and resume gameplay at any time; game over screen appears when HP reaches zero with restart and menu options
-**Plans:** 4 plans
+**Plans:** 3/4 plans executed
 Plans:
 - [x] 02-01-PLAN.md — Game state engine: GameSlice expansion, enemy types, wave configs, note matching
 - [x] 02-02-PLAN.md — Game loop + canvas rendering: fixed-timestep update, enemy movement, HUD, visual feedback
@@ -81,6 +81,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | Complete | 2026-03-01 |
-| 2. Core Loop | 2/4 | In progress | - |
+| 2. Core Loop | 3/4 | In Progress|  |
 | 3. Complete Game | 0/TBD | Not started | - |
 | 4. UX Polish | 0/TBD | Not started | - |

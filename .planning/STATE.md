@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-02-27)
 ## Current Position
 
 Phase: 2 of 4 (Core Loop)
-Plan: 2 of 4 in current phase
+Plan: 3 of 4 in current phase
 Status: In progress
-Last activity: 2026-03-01 — 02-02 complete (game loop + canvas rendering)
+Last activity: 2026-03-01 — 02-03 complete (game UI overlays + ESC pause/resume)
 
-Progress: [█████░░░░░] 37%
+Progress: [██████░░░░] 43%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
-- Average duration: 2.4 min
-- Total execution time: 12 min
+- Total plans completed: 6
+- Average duration: 2.2 min
+- Total execution time: 13 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation | 3 | 8 min | 2.7 min |
-| 02-core-loop | 2 | 4 min | 2 min |
+| 02-core-loop | 3 | 5 min | 1.7 min |
 
 **Recent Trend:**
-- Last 5 plans: 2 min, 1 min, 2 min, 2 min
+- Last 5 plans: 1 min, 2 min, 1 min, 2 min, 2 min
 - Trend: consistent
 
 *Updated after each plan completion*
@@ -63,6 +63,9 @@ Recent decisions affecting current work:
 - [02-02]: gameLoop.ts reads fresh getState() at each step — avoids stale state bugs from cached reference
 - [02-02]: Wrong-note detection fires on NoteOn events only (lastCheckedEventTs) — prevents continuous flash from held wrong notes
 - [02-02]: Render-always, update-gated pattern — drawFrame() runs every rAF tick; update() gated by gamePhase === 'playing'
+- [02-03]: Narrow selectors (one useBoundStore per field) in GameOverlay to avoid re-renders when unrelated state changes
+- [02-03]: ESC handler uses getState() not hook subscription — canonical pattern for keyboard shortcuts in event listeners
+- [02-03]: Mic overlay bumped to z-30 so it always sits above GameOverlay (z-20) — mic enable must never be blocked by game UI
 
 ### Pending Todos
 
@@ -75,5 +78,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: 02-02 complete — game loop + canvas rendering done; ready for 02-03 (game-start overlay + wave-clear screen)
-Resume file: .planning/phases/02-core-loop/02-03-PLAN.md
+Stopped at: 02-03 complete — game UI overlays + ESC pause handler done; ready for 02-04 (audio-game integration)
+Resume file: .planning/phases/02-core-loop/02-04-PLAN.md
