@@ -22,7 +22,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **GAME-01**: Enemies walk along a visible path toward a goal
 - [ ] **GAME-02**: Playing the correct note/interval attacks the corresponding enemy
 - [ ] **GAME-03**: Enemies spawn in waves (3-5 waves per level)
-- [ ] **GAME-04**: Player has a lives/HP system — enemies reaching the goal reduce HP
+- [x] **GAME-04**: Player has a lives/HP system — enemies reaching the goal reduce HP
 - [ ] **GAME-05**: HUD displays current HP, wave counter, and detected note
 - [ ] **GAME-06**: Player can pause and resume at any time during gameplay
 - [ ] **GAME-07**: Game over screen appears when HP reaches zero with option to restart or return to menu
@@ -31,11 +31,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Musical Content
 
-- [ ] **MUSC-01**: Note-level enemies represent single notes (starting with C major scale)
+- [x] **MUSC-01**: Note-level enemies represent single notes (starting with C major scale)
 - [ ] **MUSC-02**: Each enemy visually displays the note/interval it represents
-- [ ] **MUSC-03**: Levels progress from fewer notes to more notes across the keyboard
-- [ ] **MUSC-04**: Interval enemies represent 2-note intervals (thirds, fourths, fifths, etc.)
-- [ ] **MUSC-05**: Interval enemies require player to play both notes of the interval to defeat
+- [x] **MUSC-03**: Levels progress from fewer notes to more notes across the keyboard
+- [x] **MUSC-04**: Interval enemies represent 2-note intervals (thirds, fourths, fifths, etc.)
+- [x] **MUSC-05**: Interval enemies require player to play both notes of the interval to defeat
 
 ### Progression
 
@@ -115,17 +115,17 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GAME-01 | Phase 2 | Pending |
 | GAME-02 | Phase 2 | Pending |
 | GAME-03 | Phase 2 | Pending |
-| GAME-04 | Phase 2 | Pending |
+| GAME-04 | Phase 2 | Complete |
 | GAME-05 | Phase 2 | Pending |
 | GAME-06 | Phase 2 | Pending |
 | GAME-07 | Phase 2 | Pending |
 | GAME-08 | Phase 2 | Pending |
 | GAME-09 | Phase 2 | Pending |
-| MUSC-01 | Phase 2 | Pending |
+| MUSC-01 | Phase 2 | Complete |
 | MUSC-02 | Phase 2 | Pending |
-| MUSC-03 | Phase 2 | Pending |
-| MUSC-04 | Phase 2 | Pending |
-| MUSC-05 | Phase 2 | Pending |
+| MUSC-03 | Phase 2 | Complete |
+| MUSC-04 | Phase 2 | Complete |
+| MUSC-05 | Phase 2 | Complete |
 | PROG-01 | Phase 3 | Pending |
 | PROG-02 | Phase 3 | Pending |
 | PROG-03 | Phase 3 | Pending |
