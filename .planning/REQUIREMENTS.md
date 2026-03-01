@@ -15,24 +15,24 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **AINP-04**: Player sees a headphone requirement screen on first launch before gameplay
 - [ ] **AINP-05**: Player sees an explanation of why microphone access is needed before the browser permission prompt
 - [ ] **AINP-06**: Player can adjust latency offset via slider in settings
-- [ ] **AINP-07**: Detected note is always visible on screen during gameplay
+- [x] **AINP-07**: Detected note is always visible on screen during gameplay
 
 ### Game Core
 
-- [ ] **GAME-01**: Enemies walk along a visible path toward a goal
-- [ ] **GAME-02**: Playing the correct note/interval attacks the corresponding enemy
-- [ ] **GAME-03**: Enemies spawn in waves (3-5 waves per level)
+- [x] **GAME-01**: Enemies walk along a visible path toward a goal
+- [x] **GAME-02**: Playing the correct note/interval attacks the corresponding enemy
+- [x] **GAME-03**: Enemies spawn in waves (3-5 waves per level)
 - [x] **GAME-04**: Player has a lives/HP system — enemies reaching the goal reduce HP
-- [ ] **GAME-05**: HUD displays current HP, wave counter, and detected note
+- [x] **GAME-05**: HUD displays current HP, wave counter, and detected note
 - [ ] **GAME-06**: Player can pause and resume at any time during gameplay
 - [ ] **GAME-07**: Game over screen appears when HP reaches zero with option to restart or return to menu
-- [ ] **GAME-08**: Enemy plays a defeat animation when killed by correct input
+- [x] **GAME-08**: Enemy plays a defeat animation when killed by correct input
 - [ ] **GAME-09**: Wave-clear screen appears between waves for upgrades/choices
 
 ### Musical Content
 
 - [x] **MUSC-01**: Note-level enemies represent single notes (starting with C major scale)
-- [ ] **MUSC-02**: Each enemy visually displays the note/interval it represents
+- [x] **MUSC-02**: Each enemy visually displays the note/interval it represents
 - [x] **MUSC-03**: Levels progress from fewer notes to more notes across the keyboard
 - [x] **MUSC-04**: Interval enemies represent 2-note intervals (thirds, fourths, fifths, etc.)
 - [x] **MUSC-05**: Interval enemies require player to play both notes of the interval to defeat
@@ -46,9 +46,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### UI / Visual
 
-- [ ] **UIVS-02**: Basic HUD displays health, wave count, and currently detected note
-- [ ] **UIVS-03**: Visual feedback on correct input (enemy damage/removal effect)
-- [ ] **UIVS-04**: Visual feedback on incorrect input (distinct from correct feedback)
+- [x] **UIVS-02**: Basic HUD displays health, wave count, and currently detected note
+- [x] **UIVS-03**: Visual feedback on correct input (enemy damage/removal effect)
+- [x] **UIVS-04**: Visual feedback on incorrect input (distinct from correct feedback)
 
 ### Player Settings
 
@@ -111,18 +111,18 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AINP-04 | Phase 4 | Pending |
 | AINP-05 | Phase 4 | Pending |
 | AINP-06 | Phase 4 | Pending |
-| AINP-07 | Phase 2 | Pending |
-| GAME-01 | Phase 2 | Pending |
-| GAME-02 | Phase 2 | Pending |
-| GAME-03 | Phase 2 | Pending |
+| AINP-07 | Phase 2 | Complete |
+| GAME-01 | Phase 2 | Complete |
+| GAME-02 | Phase 2 | Complete |
+| GAME-03 | Phase 2 | Complete |
 | GAME-04 | Phase 2 | Complete |
-| GAME-05 | Phase 2 | Pending |
+| GAME-05 | Phase 2 | Complete |
 | GAME-06 | Phase 2 | Pending |
 | GAME-07 | Phase 2 | Pending |
-| GAME-08 | Phase 2 | Pending |
+| GAME-08 | Phase 2 | Complete |
 | GAME-09 | Phase 2 | Pending |
 | MUSC-01 | Phase 2 | Complete |
-| MUSC-02 | Phase 2 | Pending |
+| MUSC-02 | Phase 2 | Complete |
 | MUSC-03 | Phase 2 | Complete |
 | MUSC-04 | Phase 2 | Complete |
 | MUSC-05 | Phase 2 | Complete |
@@ -131,9 +131,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PROG-03 | Phase 3 | Pending |
 | PROG-04 | Phase 3 | Pending |
 | UIVS-01 | v2 | Deferred |
-| UIVS-02 | Phase 2 | Pending |
-| UIVS-03 | Phase 2 | Pending |
-| UIVS-04 | Phase 2 | Pending |
+| UIVS-02 | Phase 2 | Complete |
+| UIVS-03 | Phase 2 | Complete |
+| UIVS-04 | Phase 2 | Complete |
 | SETT-01 | Phase 3 | Pending |
 | SETT-02 | Phase 3 | Pending |
 | SETT-03 | Phase 3 | Pending |

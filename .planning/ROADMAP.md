@@ -47,7 +47,7 @@ Plans:
 **Plans:** 4 plans
 Plans:
 - [x] 02-01-PLAN.md — Game state engine: GameSlice expansion, enemy types, wave configs, note matching
-- [ ] 02-02-PLAN.md — Game loop + canvas rendering: fixed-timestep update, enemy movement, HUD, visual feedback
+- [x] 02-02-PLAN.md — Game loop + canvas rendering: fixed-timestep update, enemy movement, HUD, visual feedback
 - [ ] 02-03-PLAN.md — UI overlays + controls: start/pause/gameover/wave-clear screens, ESC key handler
 - [ ] 02-04-PLAN.md — Human verification checkpoint (verify core loop with real piano)
 
@@ -81,6 +81,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | Complete | 2026-03-01 |
-| 2. Core Loop | 1/4 | In progress | - |
+| 2. Core Loop | 2/4 | In progress | - |
 | 3. Complete Game | 0/TBD | Not started | - |
 | 4. UX Polish | 0/TBD | Not started | - |
