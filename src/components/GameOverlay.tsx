@@ -1,0 +1,142 @@
+import { useBoundStore } from '../stores'
+
+/**
+ * GameOverlay — renders the appropriate full-screen overlay based on gamePhase.
+ *
+ * Positioned absolute over the canvas (z-20). Returns null during active
+ * gameplay so the canvas is fully visible.
+ *
+ * Screens:
+ *   idle      → Start screen with title and Start Game button
+ *   paused    → Pause screen with HP/wave info and Resume / Quit buttons
+ *   gameover  → Game Over screen with wave-reached info and Try Again / Main Menu
+ *   wave-clear → Wave Complete screen with wave number and Next Wave button
+ *   playing   → null (no overlay)
+ */
+export function GameOverlay() {
+  const gamePhase = useBoundStore((s) => s.gamePhase)
+  const startGame = useBoundStore((s) => s.startGame)
+  const resumeGame = useBoundStore((s) => s.resumeGame)
+  const advanceWave = useBoundStore((s) => s.advanceWave)
+  const resetGame = useBoundStore((s) => s.resetGame)
+  const currentWave = useBoundStore((s) => s.currentWave)
+  const totalWaves = useBoundStore((s) => s.totalWaves)
+  const playerHP = useBoundStore((s) => s.playerHP)
+  const maxPlayerHP = useBoundStore((s) => s.maxPlayerHP)
+
+  if (gamePhase === 'playing') return null
+
+  const wrapperClass =
+    'absolute inset-0 flex items-center justify-center bg-black/70 z-20'
+
+  const cardClass =
+    'flex flex-col items-center gap-6 rounded-2xl bg-gray-900/90 border border-white/10 px-12 py-10 text-white shadow-2xl backdrop-blur-sm'
+
+  const primaryBtnClass =
+    'rounded-xl bg-white/10 border border-white/20 px-8 py-3 text-lg font-semibold hover:bg-white/20 active:scale-95 transition-all'
+
+  const secondaryBtnClass =
+    'rounded-xl bg-white/5 border border-white/10 px-8 py-3 text-base font-medium text-white/70 hover:bg-white/10 active:scale-95 transition-all'
+
+  // --- Idle screen ---
+  if (gamePhase === 'idle') {
+    return (
+      <div className={wrapperClass}>
+        <div className={cardClass}>
+          <h1 className="text-5xl font-black tracking-widest">PIANUKI</h1>
+          <p className="text-lg text-white/60">Tower Defense for Piano</p>
+          <button
+            className={primaryBtnClass}
+            onClick={() => startGame(0)}
+          >
+            Start Game
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // --- Paused screen ---
+  if (gamePhase === 'paused') {
+    return (
+      <div className={wrapperClass}>
+        <div className={cardClass}>
+          <h1 className="text-4xl font-black tracking-widest">PAUSED</h1>
+          <div className="flex gap-6 text-sm text-white/60">
+            <span>HP: {playerHP}/{maxPlayerHP}</span>
+            <span>Wave {currentWave + 1}/{totalWaves}</span>
+          </div>
+          <div className="flex flex-col gap-3 w-full">
+            <button
+              className={primaryBtnClass}
+              onClick={() => resumeGame()}
+            >
+              Resume
+            </button>
+            <button
+              className={secondaryBtnClass}
+              onClick={() => resetGame()}
+            >
+              Quit to Menu
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // --- Game Over screen ---
+  if (gamePhase === 'gameover') {
+    return (
+      <div className={wrapperClass}>
+        <div className={cardClass}>
+          <h1 className="text-4xl font-black tracking-widest text-red-400">
+            GAME OVER
+          </h1>
+          <p className="text-white/60">
+            Reached Wave {currentWave + 1} of {totalWaves}
+          </p>
+          <div className="flex flex-col gap-3 w-full">
+            <button
+              className={primaryBtnClass}
+              onClick={() => startGame(0)}
+            >
+              Try Again
+            </button>
+            <button
+              className={secondaryBtnClass}
+              onClick={() => resetGame()}
+            >
+              Main Menu
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // --- Wave Clear screen ---
+  if (gamePhase === 'wave-clear') {
+    return (
+      <div className={wrapperClass}>
+        <div className={cardClass}>
+          <h1 className="text-4xl font-black tracking-widest text-green-400">
+            WAVE COMPLETE
+          </h1>
+          <p className="text-white/60">
+            Wave {currentWave + 1} of {totalWaves} cleared!
+          </p>
+          <p className="text-xs text-white/30">Upgrades coming soon...</p>
+          <button
+            className={primaryBtnClass}
+            onClick={() => advanceWave()}
+          >
+            Next Wave
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return null
+}
