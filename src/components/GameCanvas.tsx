@@ -1,21 +1,11 @@
 import { useEffect, useRef } from 'react'
-// useBoundStore imported here for future game loop state reads (Phase 2+)
-// import { useBoundStore } from '../stores'
+import { useBoundStore } from '../stores'
+import { update } from '../game/gameLoop'
+import { midiNoteToName } from '../lib/noteUtils'
+import type { Enemy } from '../game/enemyTypes'
 
-// Enemy definition for static placeholder display
-interface Enemy {
-  noteName: string
-  color: string
-  pathT: number // 0–1, position along the L-shape path
-}
-
-// Static placeholder enemies on the L-shape path
-const PLACEHOLDER_ENEMIES: Enemy[] = [
-  { noteName: 'C4', color: '#ef4444', pathT: 0.15 },
-  { noteName: 'E4', color: '#3b82f6', pathT: 0.4  },
-  { noteName: 'G4', color: '#22c55e', pathT: 0.65 },
-  { noteName: 'A4', color: '#eab308', pathT: 0.85 },
-]
+// Fixed timestep: 60 updates per second
+const TIMESTEP = 1000 / 60 // ~16.67ms
 
 /**
  * Interpolate a point along the L-shape path.
@@ -61,10 +51,17 @@ function drawFrame(
   height: number,
 ): void {
   const pathWidth = Math.max(48, width * 0.055) // responsive path width
+  const state = useBoundStore.getState()
 
   // --- Background ---
   ctx.fillStyle = '#1a1a2e'
   ctx.fillRect(0, 0, width, height)
+
+  // --- Wrong note flash (UIVS-04) — drawn over background, before path ---
+  if (state.wrongNoteFlashFrames > 0) {
+    ctx.fillStyle = `rgba(220, 38, 38, ${(state.wrongNoteFlashFrames / 8) * 0.3})`
+    ctx.fillRect(0, 0, width, height)
+  }
 
   // --- Subtle grid dots ---
   const gridSpacing = 40
@@ -120,43 +117,123 @@ function drawFrame(
   ctx.textBaseline = 'middle'
   ctx.fillText('!', endX, elbowY)
 
-  // --- Placeholder enemies ---
+  // --- Real enemies from Zustand state ---
+  const { enemies } = state
   const enemyRadius = Math.max(20, pathWidth * 0.45)
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
 
-  for (const enemy of PLACEHOLDER_ENEMIES) {
+  for (const enemy of enemies) {
+    if (enemy.state === 'dead') continue
+
     const pos = getLPathPoint(enemy.pathT, width, height, pathWidth)
 
-    // Circle fill
-    ctx.beginPath()
-    ctx.arc(pos.x, pos.y, enemyRadius, 0, Math.PI * 2)
-    ctx.fillStyle = enemy.color
-    ctx.fill()
+    if (enemy.state === 'alive') {
+      // Draw filled circle
+      ctx.beginPath()
+      ctx.arc(pos.x, pos.y, enemyRadius, 0, Math.PI * 2)
+      ctx.fillStyle = enemy.color
+      ctx.fill()
 
-    // Circle border
-    ctx.strokeStyle = 'rgba(255,255,255,0.4)'
-    ctx.lineWidth = 1.5
-    ctx.stroke()
+      // White border
+      ctx.strokeStyle = 'rgba(255,255,255,0.4)'
+      ctx.lineWidth = 1.5
+      ctx.stroke()
 
-    // Note name text inside circle
-    ctx.fillStyle = '#ffffff'
-    ctx.font = `bold ${Math.max(11, enemyRadius * 0.55)}px sans-serif`
-    ctx.fillText(enemy.noteName, pos.x, pos.y)
+      // Note name centered inside
+      ctx.fillStyle = '#ffffff'
+      ctx.font = `bold ${Math.max(11, enemyRadius * 0.55)}px sans-serif`
+      ctx.fillText(enemy.noteName, pos.x, pos.y)
+    } else if (enemy.state === 'dying') {
+      // Shrinking circle + expanding white ring death animation
+      const progress = enemy.defeatedFrames / 12 // 1 → 0 as animation plays
+      const shrunkRadius = enemyRadius * progress
+
+      // Expanding white ring
+      const ringRadius = enemyRadius * (1 + (1 - progress) * 0.8)
+      ctx.beginPath()
+      ctx.arc(pos.x, pos.y, ringRadius, 0, Math.PI * 2)
+      ctx.strokeStyle = `rgba(255,255,255,${progress})`
+      ctx.lineWidth = 3
+      ctx.stroke()
+
+      // Shrinking enemy circle
+      if (shrunkRadius > 0) {
+        ctx.beginPath()
+        ctx.arc(pos.x, pos.y, shrunkRadius, 0, Math.PI * 2)
+        ctx.fillStyle = enemy.color
+        ctx.fill()
+
+        ctx.strokeStyle = 'rgba(255,255,255,0.4)'
+        ctx.lineWidth = 1.5
+        ctx.stroke()
+
+        // Note name (still visible during death)
+        ctx.fillStyle = '#ffffff'
+        ctx.font = `bold ${Math.max(11, shrunkRadius * 0.55)}px sans-serif`
+        ctx.fillText(enemy.noteName, pos.x, pos.y)
+      }
+    }
   }
 
-  // --- HUD: dev label ---
-  ctx.fillStyle = 'rgba(255,255,255,0.15)'
-  ctx.font = '11px monospace'
-  ctx.textAlign = 'left'
+  // --- HUD (drawn last, always on top) ---
+
+  // 1. HP bar (top-left)
+  const hpRatio = state.playerHP / state.maxPlayerHP
+  const hpBarW = 160
+  const hpBarH = 14
+  const hpBarX = 12
+  const hpBarY = 12
+
+  // Background track
+  ctx.fillStyle = '#374151'
+  ctx.fillRect(hpBarX, hpBarY, hpBarW, hpBarH)
+
+  // HP fill
+  ctx.fillStyle = hpRatio > 0.5 ? '#22c55e' : '#ef4444'
+  ctx.fillRect(hpBarX, hpBarY, hpBarW * hpRatio, hpBarH)
+
+  // Border
+  ctx.strokeStyle = '#ffffff'
+  ctx.lineWidth = 1
+  ctx.strokeRect(hpBarX, hpBarY, hpBarW, hpBarH)
+
+  // 2. Wave counter (top-right)
+  ctx.fillStyle = '#ffffff'
+  ctx.font = 'bold 14px monospace'
+  ctx.textAlign = 'right'
   ctx.textBaseline = 'top'
-  ctx.fillText(`${width}×${height}`, 8, 8)
+  ctx.fillText(
+    `Wave ${state.currentWave + 1}/${state.totalWaves}`,
+    width - 12,
+    12,
+  )
+
+  // 3. Detected note pill (bottom-left, AINP-07)
+  const pillX = 12
+  const pillY = height - 44
+  const pillW = 80
+  const pillH = 24
+
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.5)'
+  ctx.fillRect(pillX, pillY, pillW, pillH)
+
+  const noteDisplay =
+    state.activeNotes.size > 0
+      ? Array.from(state.activeNotes).map(midiNoteToName).join('+')
+      : '---'
+
+  ctx.fillStyle = '#ffffff'
+  ctx.font = '13px monospace'
+  ctx.textAlign = 'left'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(noteDisplay, pillX + 6, pillY + pillH / 2)
 }
 
 /**
  * Canvas 2D game view.
  * Uses ResizeObserver to match drawing buffer to container pixel size.
- * Runs a requestAnimationFrame loop calling drawFrame each tick.
+ * Runs a fixed-timestep requestAnimationFrame loop calling update() and drawFrame() each tick.
  * Reads Zustand state via .getState() in the loop (not via hooks).
  */
 export function GameCanvas() {
@@ -184,7 +261,7 @@ export function GameCanvas() {
     return () => observer.disconnect()
   }, [])
 
-  // Effect 2: rAF game loop — runs once on mount, cleaned up on unmount
+  // Effect 2: Fixed-timestep rAF game loop — runs once on mount, cleaned up on unmount
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -193,11 +270,25 @@ export function GameCanvas() {
     if (!ctx) return
 
     let frameId: number
+    let previousTimeMs = 0
+    let accumulator = 0
 
-    const loop = () => {
-      // Read Zustand state directly (not via hook) — zero React overhead in 60fps loop
-      // Access store state here when game logic needs it (Phase 2+)
-      // const { activeNotes, gamePhase } = useBoundStore.getState()
+    const loop = (currentTimeMs: number) => {
+      const raw = currentTimeMs - previousTimeMs
+      // Clamp delta to prevent spiral-of-death on tab switch / slow frames
+      const deltaTimeMs = Math.min(raw, 100)
+      previousTimeMs = currentTimeMs
+
+      const { gamePhase } = useBoundStore.getState()
+
+      if (gamePhase === 'playing') {
+        accumulator += deltaTimeMs
+        while (accumulator >= TIMESTEP) {
+          update(TIMESTEP)
+          accumulator -= TIMESTEP
+        }
+      }
+
       drawFrame(ctx, canvas.width, canvas.height)
       frameId = requestAnimationFrame(loop)
     }
@@ -213,3 +304,6 @@ export function GameCanvas() {
     </div>
   )
 }
+
+// Re-export Enemy type for downstream use (avoids importing from two places)
+export type { Enemy }
