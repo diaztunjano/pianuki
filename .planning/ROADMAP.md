@@ -12,7 +12,7 @@ Four phases build from nothing to a shippable piano tower defense game. Phase 1 
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation** - Audio pipeline proven, game scaffold in place, static world renders
+- [x] **Phase 1: Foundation** - Audio pipeline proven, game scaffold in place, static world renders
 - [ ] **Phase 2: Core Loop** - Enemies walk, notes kill them, waves complete — game is playable
 - [ ] **Phase 3: Complete Game** - Progression, persistence, and settings make it a full product
 - [ ] **Phase 4: UX Polish** - First-run flows, latency calibration, and stats make it shippable
@@ -28,11 +28,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Player can plug in a MIDI keyboard and notes are detected immediately without configuration
   3. Both acoustic and MIDI inputs produce the same NoteOn/NoteOff events (verified by a debug display showing unified events)
   4. Game canvas renders with placeholder visuals (colored shapes for path, basic background) in a Chrome browser at target resolution
-**Plans:** 1/3 plans executed
+**Plans:** 3/3 plans executed
 Plans:
-- [ ] 01-01-PLAN.md — React+Vite scaffold, Zustand store with InputEvent types, three-panel layout (game canvas with L-shape path, 88-key keyboard strip, dev-only debug panel), Tailwind v4, all dependencies
-- [ ] 01-02-PLAN.md — MIDI input hook (Web MIDI API) + microphone pitch detection hook (pitchy + AnalyserNode), unified NoteOn/NoteOff dispatch to Zustand store, mic activation button
-- [ ] 01-03-PLAN.md — Human verification checkpoint (verify audio pipeline and game scaffold with real hardware)
+- [x] 01-01-PLAN.md — React+Vite scaffold, Zustand store with InputEvent types, three-panel layout (game canvas with L-shape path, 88-key keyboard strip, dev-only debug panel), Tailwind v4, all dependencies
+- [x] 01-02-PLAN.md — MIDI input hook (Web MIDI API) + microphone pitch detection hook (pitchy + AnalyserNode), unified NoteOn/NoteOff dispatch to Zustand store, mic activation button
+- [x] 01-03-PLAN.md — Human verification checkpoint (verify audio pipeline and game scaffold with real hardware)
 
 ### Phase 2: Core Loop
 **Goal**: The game is playable end-to-end — enemies walk the path, the player plays correct notes to defeat them, waves spawn and complete, and the HUD keeps the player oriented
@@ -44,7 +44,12 @@ Plans:
   3. Playing an incorrect note produces a distinct visual effect different from a correct hit
   4. Player survives or loses HP across 3-5 waves per level, with a wave-clear screen appearing between waves
   5. Player can pause and resume gameplay at any time; game over screen appears when HP reaches zero with restart and menu options
-**Plans**: TBD
+**Plans:** 4 plans
+Plans:
+- [ ] 02-01-PLAN.md — Game state engine: GameSlice expansion, enemy types, wave configs, note matching
+- [ ] 02-02-PLAN.md — Game loop + canvas rendering: fixed-timestep update, enemy movement, HUD, visual feedback
+- [ ] 02-03-PLAN.md — UI overlays + controls: start/pause/gameover/wave-clear screens, ESC key handler
+- [ ] 02-04-PLAN.md — Human verification checkpoint (verify core loop with real piano)
 
 ### Phase 3: Complete Game
 **Goal**: The game has persistent progression across sessions — player can select levels, complete them to unlock the next, and configure gameplay to their preferences
@@ -75,7 +80,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 1/3 | In Progress|  |
-| 2. Core Loop | 0/TBD | Not started | - |
+| 1. Foundation | 3/3 | Complete | 2026-03-01 |
+| 2. Core Loop | 0/4 | Planned | - |
 | 3. Complete Game | 0/TBD | Not started | - |
 | 4. UX Polish | 0/TBD | Not started | - |
