@@ -1,5 +1,5 @@
 import { create, StateCreator } from 'zustand'
-import { devtools } from 'zustand/middleware'
+import { devtools, persist, createJSONStorage } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import { enableMapSet } from 'immer'
 import { Enemy, EnemySpawnEntry, buildEnemy } from '../game/enemyTypes'
@@ -23,6 +23,44 @@ export interface InputEvent {
   frequency?: number   // Hz — mic input only
   confidence?: number  // 0–1 clarity — mic input only
   timestamp: number    // performance.now()
+}
+
+// --- Progress Types ---
+
+export interface LevelRecord {
+  completed: boolean
+  stars: number           // 0-3
+  bestAccuracy: number    // 0-100
+  bestReactionMs: number
+  playCount: number
+  totalPlayTimeMs: number
+}
+
+export interface LevelResult {
+  levelIndex: number
+  accuracy: number        // 0-100
+  avgReactionMs: number
+  durationMs: number
+  noteMisses: Record<string, number>
+}
+
+export interface PersistedState {
+  progress: {
+    levels: Record<number, LevelRecord>
+    totalPlayTimeMs: number
+    noteMissCounts: Record<string, number>
+  }
+  settings: {
+    penaltyMode: 'easy' | 'normal' | 'hard'
+    inputSource: 'mic' | 'midi'
+  }
+}
+
+function computeStars(accuracy: number): 0 | 1 | 2 | 3 {
+  if (accuracy >= 90) return 3
+  if (accuracy >= 75) return 2
+  if (accuracy >= 50) return 1
+  return 0
 }
 
 // --- Audio Slice ---
@@ -66,7 +104,10 @@ const createAudioSlice: StateCreator<
 
 interface GameSlice {
   // FSM state
-  gamePhase: 'idle' | 'playing' | 'paused' | 'wave-clear' | 'gameover'
+  gamePhase: 'idle' | 'playing' | 'paused' | 'wave-clear' | 'gameover' | 'level-complete'
+
+  // Screen navigation
+  currentScreen: 'levelSelect' | 'game' | 'stats'
 
   // Player state
   playerHP: number
@@ -87,6 +128,8 @@ interface GameSlice {
   wrongNoteFlashFrames: number
 
   // Actions
+  navigateTo: (screen: 'levelSelect' | 'game' | 'stats') => void
+  startLevel: (levelIndex: number) => void
   startGame: (levelIndex: number) => void
   pauseGame: () => void
   resumeGame: () => void
@@ -109,6 +152,7 @@ const createGameSlice: StateCreator<
 > = (set) => ({
   // --- Default state ---
   gamePhase: 'idle',
+  currentScreen: 'levelSelect',
   playerHP: 5,
   maxPlayerHP: 5,
   currentWave: 0,
@@ -121,6 +165,37 @@ const createGameSlice: StateCreator<
   wrongNoteFlashFrames: 0,
 
   // --- Actions ---
+
+  navigateTo: (screen) =>
+    set(
+      (draft) => {
+        draft.currentScreen = screen
+      },
+      false,
+      'game/navigateTo',
+    ),
+
+  startLevel: (levelIndex) =>
+    set(
+      (draft) => {
+        const level = LEVEL_CONFIGS[levelIndex]
+        if (!level) return
+        const wave = level.waves[0]
+        draft.currentScreen = 'game'
+        draft.gamePhase = 'playing'
+        draft.playerHP = draft.maxPlayerHP
+        draft.currentLevel = levelIndex
+        draft.currentWave = 0
+        draft.totalWaves = level.waves.length
+        draft.enemies = []
+        draft.spawnQueue = [...wave.enemies]
+        draft.spawnIntervalMs = wave.spawnIntervalMs
+        draft.spawnAccumulator = 0
+        draft.wrongNoteFlashFrames = 0
+      },
+      false,
+      'game/startLevel',
+    ),
 
   startGame: (levelIndex) =>
     set(
@@ -179,8 +254,8 @@ const createGameSlice: StateCreator<
           draft.spawnAccumulator = 0
           draft.gamePhase = 'playing'
         } else {
-          // All waves complete — return to menu (level clear)
-          draft.gamePhase = 'idle'
+          // All waves complete — level complete
+          draft.gamePhase = 'level-complete'
         }
       },
       false,
@@ -292,16 +367,151 @@ const createGameSlice: StateCreator<
     ),
 })
 
+// --- Progress Slice ---
+
+interface ProgressSlice {
+  progress: {
+    levels: Record<number, LevelRecord>
+    totalPlayTimeMs: number
+    noteMissCounts: Record<string, number>
+  }
+  recordLevelComplete: (levelIndex: number, result: LevelResult) => void
+  resetProgress: () => void
+}
+
+const defaultProgress: ProgressSlice['progress'] = {
+  levels: {},
+  totalPlayTimeMs: 0,
+  noteMissCounts: {},
+}
+
+const createProgressSlice: StateCreator<
+  BoundStore,
+  [['zustand/devtools', never], ['zustand/immer', never]],
+  [],
+  ProgressSlice
+> = (set) => ({
+  progress: defaultProgress,
+
+  recordLevelComplete: (levelIndex, result) =>
+    set(
+      (draft) => {
+        const stars = computeStars(result.accuracy)
+        const existing = draft.progress.levels[levelIndex]
+
+        if (existing) {
+          // Keep best stats
+          existing.completed = true
+          existing.stars = Math.max(existing.stars, stars)
+          existing.bestAccuracy = Math.max(existing.bestAccuracy, result.accuracy)
+          // Lower reaction time is better; only update if we have a valid time
+          if (result.avgReactionMs > 0) {
+            existing.bestReactionMs =
+              existing.bestReactionMs === 0
+                ? result.avgReactionMs
+                : Math.min(existing.bestReactionMs, result.avgReactionMs)
+          }
+          existing.playCount += 1
+          existing.totalPlayTimeMs += result.durationMs
+        } else {
+          draft.progress.levels[levelIndex] = {
+            completed: true,
+            stars,
+            bestAccuracy: result.accuracy,
+            bestReactionMs: result.avgReactionMs,
+            playCount: 1,
+            totalPlayTimeMs: result.durationMs,
+          }
+        }
+
+        // Accumulate global play time
+        draft.progress.totalPlayTimeMs += result.durationMs
+
+        // Accumulate global note miss counts
+        for (const [noteName, count] of Object.entries(result.noteMisses)) {
+          draft.progress.noteMissCounts[noteName] =
+            (draft.progress.noteMissCounts[noteName] ?? 0) + count
+        }
+      },
+      false,
+      'progress/recordLevelComplete',
+    ),
+
+  resetProgress: () =>
+    set(
+      (draft) => {
+        draft.progress = { ...defaultProgress, levels: {}, noteMissCounts: {} }
+      },
+      false,
+      'progress/resetProgress',
+    ),
+})
+
+// --- Settings Slice ---
+
+interface SettingsSlice {
+  settings: {
+    penaltyMode: 'easy' | 'normal' | 'hard'
+    inputSource: 'mic' | 'midi'
+  }
+  setPenaltyMode: (mode: 'easy' | 'normal' | 'hard') => void
+  setInputSource: (source: 'mic' | 'midi') => void
+}
+
+const createSettingsSlice: StateCreator<
+  BoundStore,
+  [['zustand/devtools', never], ['zustand/immer', never]],
+  [],
+  SettingsSlice
+> = (set) => ({
+  settings: {
+    penaltyMode: 'normal',
+    inputSource: 'mic',
+  },
+
+  setPenaltyMode: (mode) =>
+    set(
+      (draft) => {
+        draft.settings.penaltyMode = mode
+      },
+      false,
+      'settings/setPenaltyMode',
+    ),
+
+  setInputSource: (source) =>
+    set(
+      (draft) => {
+        draft.settings.inputSource = source
+      },
+      false,
+      'settings/setInputSource',
+    ),
+})
+
 // --- Bound Store ---
 
-type BoundStore = AudioSlice & GameSlice
+type BoundStore = AudioSlice & GameSlice & ProgressSlice & SettingsSlice
 
 export const useBoundStore = create<BoundStore>()(
   devtools(
-    immer((...args) => ({
-      ...createAudioSlice(...args),
-      ...createGameSlice(...args),
-    })),
+    persist(
+      immer((...args) => ({
+        ...createAudioSlice(...args),
+        ...createGameSlice(...args),
+        ...createProgressSlice(...args),
+        ...createSettingsSlice(...args),
+      })),
+      {
+        name: 'pianuki-progress',
+        storage: createJSONStorage(() => localStorage),
+        version: 1,
+        partialize: (state): PersistedState => ({
+          progress: state.progress,
+          settings: state.settings,
+        }),
+        migrate: (persistedState, _version) => persistedState as PersistedState,
+      },
+    ),
     { name: 'pianuki-store' },
   ),
 )
