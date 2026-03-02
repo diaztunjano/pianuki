@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-27)
 
 ## Current Position
 
-Phase: 3 of 4 (Complete Game) — COMPLETE
-Plan: 5 of 5 complete (03-05 done)
-Status: Phase 3 complete — ready for Phase 4
-Last activity: 2026-03-02 — 03-05 complete: human verification passed all 7 test scenarios
+Phase: 4 of 4 (UX Polish) — IN PROGRESS
+Plan: 1 of 4 complete (04-01 done)
+Status: Phase 4 in progress — latency offset and onboarding fields complete
+Last activity: 2026-03-02 — 04-01 complete: SettingsSlice v2, latency slider, audio timestamp offset
 
-Progress: [████████████████████] ~80%
+Progress: [█████████████████████] ~85%
 
 ## Performance Metrics
 
@@ -37,6 +37,7 @@ Progress: [████████████████████] ~80%
 
 *Updated after each plan completion*
 | Phase 03-complete-game P05 | 2 | 1 tasks | 0 files |
+| Phase 04-ux-polish P01 | 2 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -88,6 +89,9 @@ Recent decisions affecting current work:
 - [03-04]: StatsScreen accuracyColor thresholds match computeStars: green>=75, yellow>=50, red<50 — visual and logical consistency
 - [03-04]: @utility anim-delay-* Tailwind v4 syntax enables staggered CSS star animations without JS timers
 - [Phase 03-complete-game]: All 7 Phase 3 verification tests passed: progression saves and persists, level select shows stars and locks, settings work and persist, stats page shows data, penalty modes work, all 5 levels available
+- [Phase 04-ux-polish]: Apply latencyOffsetMs to ALL event timestamps (NoteOn and NoteOff) to keep entire event timeline consistently shifted
+- [Phase 04-ux-polish]: Read latencyOffsetMs once at top of poll() frame — ensures consistent offset value across all events within one tick
+- [Phase 04-ux-polish]: Persist version 2 migration uses ?? coalescing — handles both missing fields and null values from corrupted state
 
 ### Pending Todos
 
@@ -100,5 +104,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 03-05-PLAN.md (Phase 3 human verification — all 7 tests passed)
-Resume file: .planning/phases/04-ux-polish/ (Phase 4 begins next)
+Stopped at: Completed 04-01-PLAN.md (SettingsSlice v2, latency slider, audio timestamp offset)
+Resume file: .planning/phases/04-ux-polish/04-02-PLAN.md (onboarding screen)

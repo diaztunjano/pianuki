@@ -77,7 +77,7 @@ Plans:
   1. New player sees a headphone requirement screen before any gameplay begins, with a clear explanation of why headphones are mandatory
   2. Player sees an explanation of why microphone access is needed before the browser permission prompt appears (not after)
   3. Player can adjust a latency offset slider in settings and observe the change in responsiveness during play
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 Plans:
 - [ ] 04-01-PLAN.md — Store expansion (hasSeenOnboarding + latencyOffsetMs + persist v2 migration) + latency slider in SettingsPanel + offset in useAudioInput
 - [ ] 04-02-PLAN.md — OnboardingScreen (headphone gate) + MicExplainScreen (pre-permission) + AppShell routing
@@ -93,4 +93,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. Foundation | 3/3 | Complete | 2026-03-01 |
 | 2. Core Loop | 4/4 | Complete | 2026-03-02 |
 | 3. Complete Game | 5/5 | Complete   | 2026-03-02 |
-| 4. UX Polish | 0/3 | Not started | - |
+| 4. UX Polish | 1/3 | In Progress|  |
