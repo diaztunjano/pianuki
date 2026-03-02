@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-27)
 
 **Core value:** A piano learner can sit at their real piano, start the game in a browser, and progressively learn music theory by playing through increasingly challenging tower defense waves that feel like a game, not a lesson.
-**Current focus:** Phase 2 complete — ready for Phase 3
+**Current focus:** Phase 3 in progress — data/logic backbone complete
 
 ## Current Position
 
-Phase: 2 of 4 (Core Loop) — COMPLETE
-Plan: 4 of 4 in current phase (all done)
-Status: Phase complete
-Last activity: 2026-03-02 — 02-04 human verification passed, immer MapSet fix applied
+Phase: 3 of 4 (Complete Game) — IN PROGRESS
+Plan: 1 of 5 complete (03-01 done)
+Status: Executing Phase 3
+Last activity: 2026-03-02 — 03-01 complete: persist middleware, 5 levels, statsTracker
 
-Progress: [██████████] 50%
+Progress: [████████████] ~55%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
+- Total plans completed: 8
 - Average duration: 2.1 min
-- Total execution time: 15 min
+- Total execution time: 17 min
 
 **By Phase:**
 
@@ -29,10 +29,11 @@ Progress: [██████████] 50%
 |-------|-------|-------|----------|
 | 01-foundation | 3 | 8 min | 2.7 min |
 | 02-core-loop | 4 | 7 min | 1.8 min |
+| 03-complete-game | 1 | 2 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: 2 min, 1 min, 2 min, 2 min, 5 min
-- Trend: consistent (02-04 longer due to bugfix)
+- Last 5 plans: 1 min, 2 min, 2 min, 5 min, 2 min
+- Trend: consistent
 
 *Updated after each plan completion*
 
@@ -68,6 +69,11 @@ Recent decisions affecting current work:
 - [02-03]: Mic overlay bumped to z-30 so it always sits above GameOverlay (z-20) — mic enable must never be blocked by game UI
 - [02-04]: enableMapSet() required when using immer with Set/Map in Zustand — immer does not support these natively
 - [02-04]: Clarity threshold tuned from 0.9 to 0.75 for real piano mic detection; silence threshold from 0.01 to 0.005
+- [03-01]: devtools(persist(immer())) middleware ordering — devtools outermost, persist middle, immer innermost; individual slices retain only devtools+immer mutator tuples
+- [03-01]: statsTracker uses module-level variables (not React state) to avoid re-render overhead during 60fps game loop
+- [03-01]: advanceWave now sets 'level-complete' instead of 'idle' so future stats screen renders before returning to menu
+- [03-01]: startLevel is new primary entry point from level select (sets currentScreen + starts wave); startGame preserved for backward compat
+- [03-01]: partialize excludes all runtime state (enemies, events, activeNotes, gamePhase, currentScreen) from localStorage
 
 ### Pending Todos
 
@@ -80,5 +86,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Phase 3 context gathered
-Resume file: .planning/phases/03-complete-game/03-CONTEXT.md
+Stopped at: Completed 03-01-PLAN.md (data/logic backbone)
+Resume file: .planning/phases/03-complete-game/03-02-PLAN.md

@@ -39,10 +39,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Progression
 
-- [ ] **PROG-01**: Player progress (completed levels, scores) persists via localStorage
+- [x] **PROG-01**: Player progress (completed levels, scores) persists via localStorage
 - [ ] **PROG-02**: Player can select any unlocked level from a level select screen
 - [ ] **PROG-03**: Levels unlock sequentially as previous levels are completed
-- [ ] **PROG-04**: 3-5 levels of increasing difficulty available at launch
+- [x] **PROG-04**: 3-5 levels of increasing difficulty available at launch
 
 ### UI / Visual
 
@@ -54,7 +54,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [ ] **SETT-01**: Player can configure mistake penalty mode (damage to HP / enemy advances / no penalty)
 - [ ] **SETT-02**: Player can see their accuracy and reaction time stats during/after gameplay
-- [ ] **SETT-03**: Settings persist across sessions via localStorage
+- [x] **SETT-03**: Settings persist across sessions via localStorage
 
 ## v2 Requirements
 
@@ -126,17 +126,17 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MUSC-03 | Phase 2 | Complete |
 | MUSC-04 | Phase 2 | Complete |
 | MUSC-05 | Phase 2 | Complete |
-| PROG-01 | Phase 3 | Pending |
+| PROG-01 | Phase 3 | Complete |
 | PROG-02 | Phase 3 | Pending |
 | PROG-03 | Phase 3 | Pending |
-| PROG-04 | Phase 3 | Pending |
+| PROG-04 | Phase 3 | Complete |
 | UIVS-01 | v2 | Deferred |
 | UIVS-02 | Phase 2 | Complete |
 | UIVS-03 | Phase 2 | Complete |
 | UIVS-04 | Phase 2 | Complete |
 | SETT-01 | Phase 3 | Pending |
 | SETT-02 | Phase 3 | Pending |
-| SETT-03 | Phase 3 | Pending |
+| SETT-03 | Phase 3 | Complete |
 
 **Coverage:**
 - v1 requirements: 31 total
