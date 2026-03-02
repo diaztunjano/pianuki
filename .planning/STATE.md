@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-27)
 
 **Core value:** A piano learner can sit at their real piano, start the game in a browser, and progressively learn music theory by playing through increasingly challenging tower defense waves that feel like a game, not a lesson.
-**Current focus:** Phase 3 in progress — game loop integration and screen navigation complete
+**Current focus:** Phase 3 in progress — level select screen and level summary overlay complete
 
 ## Current Position
 
 Phase: 3 of 4 (Complete Game) — IN PROGRESS
-Plan: 2 of 5 complete (03-02 done)
+Plan: 3 of 5 complete (03-03 done)
 Status: Executing Phase 3
-Last activity: 2026-03-02 — 03-02 complete: penalty mode branching, stats tracking, AppShell multi-screen navigation
+Last activity: 2026-03-02 — 03-03 complete: LevelSelectScreen path/map layout, LevelSummaryOverlay with animated stars
 
 Progress: [█████████████] ~60%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
-- Average duration: 2.6 min
-- Total execution time: 23 min
+- Total plans completed: 10
+- Average duration: 2.8 min
+- Total execution time: 28 min
 
 **By Phase:**
 
@@ -29,10 +29,10 @@ Progress: [█████████████] ~60%
 |-------|-------|-------|----------|
 | 01-foundation | 3 | 8 min | 2.7 min |
 | 02-core-loop | 4 | 7 min | 1.8 min |
-| 03-complete-game | 2 | 8 min | 4 min |
+| 03-complete-game | 3 | 13 min | 4.3 min |
 
 **Recent Trend:**
-- Last 5 plans: 2 min, 2 min, 5 min, 2 min, 6 min
+- Last 5 plans: 2 min, 2 min, 5 min, 2 min, 6 min, 5 min
 - Trend: consistent
 
 *Updated after each plan completion*
@@ -78,6 +78,10 @@ Recent decisions affecting current work:
 - [03-02]: lastLevelResult stored in GameSlice (runtime, not persisted) — summary screen reads then navigates away
 - [03-02]: resetStats() called outside immer set() callback — keeps draft mutations pure, no side effects inside immer
 - [03-02]: Stub LevelSelectScreen/StatsScreen inline in AppShell — clearly commented, replaced by Plans 03-03/03-05
+- [03-03]: NODE_POSITIONS use percentage x + pixel y for zigzag layout — no JS measurements needed, CSS resolves percentages in absolute-positioned children
+- [03-03]: LevelSummaryOverlay reads lastLevelResult directly from store — avoids prop drilling through GameOverlay, consistent with narrow selector pattern
+- [03-03]: idle gamePhase returns null in GameOverlay — LevelSelectScreen is now home screen; idle is purely transient before startLevel is called
+- [03-03]: gameover Try Again uses startLevel(currentLevel) not startGame(0) — replays the level the player failed, not hardcoded to level 0
 
 ### Pending Todos
 
@@ -90,5 +94,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 03-02-PLAN.md (game loop integration, AppShell navigation)
-Resume file: .planning/phases/03-complete-game/03-03-PLAN.md
+Stopped at: Completed 03-03-PLAN.md (LevelSelectScreen, LevelSummaryOverlay, GameOverlay wiring)
+Resume file: .planning/phases/03-complete-game/03-04-PLAN.md
