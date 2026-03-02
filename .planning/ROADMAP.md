@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - Audio pipeline proven, game scaffold in place, static world renders
 - [x] **Phase 2: Core Loop** - Enemies walk, notes kill them, waves complete — game is playable
-- [ ] **Phase 3: Complete Game** - Progression, persistence, and settings make it a full product
+- [x] **Phase 3: Complete Game** - Progression, persistence, and settings make it a full product (completed 2026-03-02)
 - [ ] **Phase 4: UX Polish** - First-run flows, latency calibration, and stats make it shippable
 
 ## Phase Details
@@ -61,13 +61,13 @@ Plans:
   3. 3-5 levels of increasing difficulty are available at launch, unlocking sequentially as the player progresses
   4. Player can choose their mistake penalty mode (HP damage / enemy advances / no penalty) and see that setting persist across sessions
   5. Player can view their accuracy and reaction time stats during or after gameplay
-**Plans:** 4/5 plans executed
+**Plans:** 5/5 plans complete
 Plans:
-- [ ] 03-01-PLAN.md — Store expansion (persist + ProgressSlice + SettingsSlice + currentScreen) + level/enemy/stats data layer
-- [ ] 03-02-PLAN.md — Game loop penalty mode + stats tracking + AppShell multi-screen navigation
-- [ ] 03-03-PLAN.md — Level Select screen (path/map layout) + Level Summary overlay (end-of-level results)
-- [ ] 03-04-PLAN.md — Settings panel (penalty mode + input source) + Stats screen + star animation CSS
-- [ ] 03-05-PLAN.md — Human verification checkpoint (verify all Phase 3 features end-to-end)
+- [x] 03-01-PLAN.md — Store expansion (persist + ProgressSlice + SettingsSlice + currentScreen) + level/enemy/stats data layer
+- [x] 03-02-PLAN.md — Game loop penalty mode + stats tracking + AppShell multi-screen navigation
+- [x] 03-03-PLAN.md — Level Select screen (path/map layout) + Level Summary overlay (end-of-level results)
+- [x] 03-04-PLAN.md — Settings panel (penalty mode + input source) + Stats screen + star animation CSS
+- [x] 03-05-PLAN.md — Human verification checkpoint (verify all Phase 3 features end-to-end)
 
 ### Phase 4: UX Polish
 **Goal**: The first-run experience is complete and trustworthy — players understand why microphone access is needed, headphones are required, latency is calibrated, and the game feels shippable
@@ -88,5 +88,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | Complete | 2026-03-01 |
 | 2. Core Loop | 4/4 | Complete | 2026-03-02 |
-| 3. Complete Game | 4/5 | In Progress|  |
+| 3. Complete Game | 5/5 | Complete   | 2026-03-02 |
 | 4. UX Polish | 0/TBD | Not started | - |
