@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-27)
 
 **Core value:** A piano learner can sit at their real piano, start the game in a browser, and progressively learn music theory by playing through increasingly challenging tower defense waves that feel like a game, not a lesson.
-**Current focus:** Phase 3 in progress — data/logic backbone complete
+**Current focus:** Phase 3 in progress — game loop integration and screen navigation complete
 
 ## Current Position
 
 Phase: 3 of 4 (Complete Game) — IN PROGRESS
-Plan: 1 of 5 complete (03-01 done)
+Plan: 2 of 5 complete (03-02 done)
 Status: Executing Phase 3
-Last activity: 2026-03-02 — 03-01 complete: persist middleware, 5 levels, statsTracker
+Last activity: 2026-03-02 — 03-02 complete: penalty mode branching, stats tracking, AppShell multi-screen navigation
 
-Progress: [████████████] ~55%
+Progress: [█████████████] ~60%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
-- Average duration: 2.1 min
-- Total execution time: 17 min
+- Total plans completed: 9
+- Average duration: 2.6 min
+- Total execution time: 23 min
 
 **By Phase:**
 
@@ -29,10 +29,10 @@ Progress: [████████████] ~55%
 |-------|-------|-------|----------|
 | 01-foundation | 3 | 8 min | 2.7 min |
 | 02-core-loop | 4 | 7 min | 1.8 min |
-| 03-complete-game | 1 | 2 min | 2 min |
+| 03-complete-game | 2 | 8 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 1 min, 2 min, 2 min, 5 min, 2 min
+- Last 5 plans: 2 min, 2 min, 5 min, 2 min, 6 min
 - Trend: consistent
 
 *Updated after each plan completion*
@@ -74,6 +74,10 @@ Recent decisions affecting current work:
 - [03-01]: advanceWave now sets 'level-complete' instead of 'idle' so future stats screen renders before returning to menu
 - [03-01]: startLevel is new primary entry point from level select (sets currentScreen + starts wave); startGame preserved for backward compat
 - [03-01]: partialize excludes all runtime state (enemies, events, activeNotes, gamePhase, currentScreen) from localStorage
+- [03-02]: penaltyMode branching in Step 3 (enemy-reached-goal) — single divergence point; easy=silent kill, normal=HP damage, hard=loop back with 3x failsafe
+- [03-02]: lastLevelResult stored in GameSlice (runtime, not persisted) — summary screen reads then navigates away
+- [03-02]: resetStats() called outside immer set() callback — keeps draft mutations pure, no side effects inside immer
+- [03-02]: Stub LevelSelectScreen/StatsScreen inline in AppShell — clearly commented, replaced by Plans 03-03/03-05
 
 ### Pending Todos
 
@@ -86,5 +90,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 03-01-PLAN.md (data/logic backbone)
-Resume file: .planning/phases/03-complete-game/03-02-PLAN.md
+Stopped at: Completed 03-02-PLAN.md (game loop integration, AppShell navigation)
+Resume file: .planning/phases/03-complete-game/03-03-PLAN.md

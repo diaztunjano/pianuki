@@ -52,8 +52,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Player Settings
 
-- [ ] **SETT-01**: Player can configure mistake penalty mode (damage to HP / enemy advances / no penalty)
-- [ ] **SETT-02**: Player can see their accuracy and reaction time stats during/after gameplay
+- [x] **SETT-01**: Player can configure mistake penalty mode (damage to HP / enemy advances / no penalty)
+- [x] **SETT-02**: Player can see their accuracy and reaction time stats during/after gameplay
 - [x] **SETT-03**: Settings persist across sessions via localStorage
 
 ## v2 Requirements
@@ -134,8 +134,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UIVS-02 | Phase 2 | Complete |
 | UIVS-03 | Phase 2 | Complete |
 | UIVS-04 | Phase 2 | Complete |
-| SETT-01 | Phase 3 | Pending |
-| SETT-02 | Phase 3 | Pending |
+| SETT-01 | Phase 3 | Complete |
+| SETT-02 | Phase 3 | Complete |
 | SETT-03 | Phase 3 | Complete |
 
 **Coverage:**
