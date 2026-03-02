@@ -61,7 +61,7 @@ Plans:
   3. 3-5 levels of increasing difficulty are available at launch, unlocking sequentially as the player progresses
   4. Player can choose their mistake penalty mode (HP damage / enemy advances / no penalty) and see that setting persist across sessions
   5. Player can view their accuracy and reaction time stats during or after gameplay
-**Plans:** 1/5 plans executed
+**Plans:** 4/5 plans executed
 Plans:
 - [ ] 03-01-PLAN.md — Store expansion (persist + ProgressSlice + SettingsSlice + currentScreen) + level/enemy/stats data layer
 - [ ] 03-02-PLAN.md — Game loop penalty mode + stats tracking + AppShell multi-screen navigation
@@ -88,5 +88,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | Complete | 2026-03-01 |
 | 2. Core Loop | 4/4 | Complete | 2026-03-02 |
-| 3. Complete Game | 1/5 | In Progress|  |
+| 3. Complete Game | 4/5 | In Progress|  |
 | 4. UX Polish | 0/TBD | Not started | - |

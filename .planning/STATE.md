@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-27)
 
 **Core value:** A piano learner can sit at their real piano, start the game in a browser, and progressively learn music theory by playing through increasingly challenging tower defense waves that feel like a game, not a lesson.
-**Current focus:** Phase 3 in progress — level select screen and level summary overlay complete
+**Current focus:** Phase 3 in progress — settings panel, stats screen, and star animation CSS complete
 
 ## Current Position
 
 Phase: 3 of 4 (Complete Game) — IN PROGRESS
-Plan: 3 of 5 complete (03-03 done)
+Plan: 4 of 5 complete (03-04 done)
 Status: Executing Phase 3
-Last activity: 2026-03-02 — 03-03 complete: LevelSelectScreen path/map layout, LevelSummaryOverlay with animated stars
+Last activity: 2026-03-02 — 03-04 complete: SettingsPanel modal, StatsScreen, star-pop CSS animation
 
-Progress: [█████████████] ~60%
+Progress: [███████████████] ~75%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10
-- Average duration: 2.8 min
-- Total execution time: 28 min
+- Total plans completed: 11
+- Average duration: 2.9 min
+- Total execution time: 34 min
 
 **By Phase:**
 
@@ -29,10 +29,10 @@ Progress: [█████████████] ~60%
 |-------|-------|-------|----------|
 | 01-foundation | 3 | 8 min | 2.7 min |
 | 02-core-loop | 4 | 7 min | 1.8 min |
-| 03-complete-game | 3 | 13 min | 4.3 min |
+| 03-complete-game | 4 | 19 min | 4.8 min |
 
 **Recent Trend:**
-- Last 5 plans: 2 min, 2 min, 5 min, 2 min, 6 min, 5 min
+- Last 5 plans: 5 min, 2 min, 6 min, 5 min, 6 min
 - Trend: consistent
 
 *Updated after each plan completion*
@@ -82,6 +82,10 @@ Recent decisions affecting current work:
 - [03-03]: LevelSummaryOverlay reads lastLevelResult directly from store — avoids prop drilling through GameOverlay, consistent with narrow selector pattern
 - [03-03]: idle gamePhase returns null in GameOverlay — LevelSelectScreen is now home screen; idle is purely transient before startLevel is called
 - [03-03]: gameover Try Again uses startLevel(currentLevel) not startGame(0) — replays the level the player failed, not hardcoded to level 0
+- [03-04]: z-25 for SettingsPanel sits between GameOverlay (z-20) and mic overlay (z-30) — consistent layer ordering
+- [03-04]: SettingsPanel is stateless; parent holds showSettings boolean and passes onClose callback — clean separation of concerns
+- [03-04]: StatsScreen accuracyColor thresholds match computeStars: green>=75, yellow>=50, red<50 — visual and logical consistency
+- [03-04]: @utility anim-delay-* Tailwind v4 syntax enables staggered CSS star animations without JS timers
 
 ### Pending Todos
 
@@ -94,5 +98,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 03-03-PLAN.md (LevelSelectScreen, LevelSummaryOverlay, GameOverlay wiring)
-Resume file: .planning/phases/03-complete-game/03-04-PLAN.md
+Stopped at: Completed 03-04-PLAN.md (SettingsPanel, StatsScreen, star-pop CSS animation)
+Resume file: .planning/phases/03-complete-game/03-05-PLAN.md
