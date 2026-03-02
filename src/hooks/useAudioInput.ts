@@ -6,7 +6,7 @@ import { frequencyToMidiNote, midiNoteToName } from '../lib/noteUtils'
 // --- Constants ---
 
 /** Minimum clarity (0–1) from pitchy for a pitch to be considered valid */
-const CLARITY_THRESHOLD = 0.9
+const CLARITY_THRESHOLD = 0.75
 
 /** FFT size for the AnalyserNode — power of 2, higher = more frequency resolution */
 const FFT_SIZE = 2048
@@ -15,7 +15,7 @@ const FFT_SIZE = 2048
  * RMS amplitude below which we treat the input as silence.
  * Prevents spurious detections from background noise.
  */
-const SILENCE_THRESHOLD = 0.01
+const SILENCE_THRESHOLD = 0.005
 
 /** Piano frequency range: A0 (27.5 Hz) to C8 (~4186 Hz) */
 const MIN_FREQUENCY = 27

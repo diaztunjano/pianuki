@@ -1,8 +1,12 @@
 import { create, StateCreator } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
+import { enableMapSet } from 'immer'
 import { Enemy, EnemySpawnEntry, buildEnemy } from '../game/enemyTypes'
 import { LEVEL_CONFIGS } from '../game/waveConfig'
+
+// Enable immer support for Set/Map (needed for activeNotes: Set<number>)
+enableMapSet()
 
 // --- Shared Event Type ---
 
