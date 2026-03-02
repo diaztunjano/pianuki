@@ -3,33 +3,12 @@ import { GameCanvas } from './GameCanvas'
 import { KeyboardStrip } from './KeyboardStrip'
 import { DebugPanel } from './DebugPanel'
 import { GameOverlay } from './GameOverlay'
+import { LevelSelectScreen } from './LevelSelectScreen'
 import { useMidiInput } from '../hooks/useMidiInput'
 import { useAudioInput } from '../hooks/useAudioInput'
 import { useBoundStore } from '../stores'
 
-// --- Temporary stub screens — replaced by Plans 03 and 04 ---
-
-function LevelSelectScreen() {
-  const startLevel = useBoundStore((s) => s.startLevel)
-  const navigateTo = useBoundStore((s) => s.navigateTo)
-  return (
-    <div className="flex-1 flex flex-col items-center justify-center gap-4 text-white">
-      <h1 className="text-4xl font-bold">Level Select</h1>
-      <button
-        className="px-6 py-3 bg-white/10 rounded-xl hover:bg-white/20 active:scale-95 transition-all"
-        onClick={() => startLevel(0)}
-      >
-        Play Level 1
-      </button>
-      <button
-        className="px-6 py-3 bg-white/10 rounded-xl hover:bg-white/20 active:scale-95 transition-all"
-        onClick={() => navigateTo('stats')}
-      >
-        Stats
-      </button>
-    </div>
-  )
-}
+// --- Stub screens still pending replacement ---
 
 function StatsScreen() {
   const navigateTo = useBoundStore((s) => s.navigateTo)
