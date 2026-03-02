@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-27)
 
 **Core value:** A piano learner can sit at their real piano, start the game in a browser, and progressively learn music theory by playing through increasingly challenging tower defense waves that feel like a game, not a lesson.
-**Current focus:** Phase 3 complete — all 7 verification tests passed; ready for Phase 4 UX Polish
+**Current focus:** Phase 4 UX Polish in progress — onboarding screen and mic explain screen complete
 
 ## Current Position
 
 Phase: 4 of 4 (UX Polish) — IN PROGRESS
-Plan: 1 of 4 complete (04-01 done)
-Status: Phase 4 in progress — latency offset and onboarding fields complete
-Last activity: 2026-03-02 — 04-01 complete: SettingsSlice v2, latency slider, audio timestamp offset
+Plan: 2 of 4 complete (04-02 done)
+Status: Phase 4 in progress — onboarding gate, mic explain overlay, and AppShell routing wired
+Last activity: 2026-03-02 — 04-02 complete: OnboardingScreen, MicExplainScreen, AppShell gates
 
-Progress: [█████████████████████] ~85%
+Progress: [██████████████████████] ~88%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11
-- Average duration: 2.9 min
-- Total execution time: 34 min
+- Total plans completed: 12
+- Average duration: 2.8 min
+- Total execution time: 36 min
 
 **By Phase:**
 
@@ -32,12 +32,13 @@ Progress: [█████████████████████] ~85%
 | 03-complete-game | 5 | ~21 min | 4.2 min |
 
 **Recent Trend:**
-- Last 5 plans: 5 min, 2 min, 6 min, 5 min, 6 min
+- Last 5 plans: 2 min, 6 min, 5 min, 6 min, 2 min
 - Trend: consistent
 
 *Updated after each plan completion*
 | Phase 03-complete-game P05 | 2 | 1 tasks | 0 files |
 | Phase 04-ux-polish P01 | 2 | 2 tasks | 3 files |
+| Phase 04-ux-polish P02 | 2 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -92,6 +93,10 @@ Recent decisions affecting current work:
 - [Phase 04-ux-polish]: Apply latencyOffsetMs to ALL event timestamps (NoteOn and NoteOff) to keep entire event timeline consistently shifted
 - [Phase 04-ux-polish]: Read latencyOffsetMs once at top of poll() frame — ensures consistent offset value across all events within one tick
 - [Phase 04-ux-polish]: Persist version 2 migration uses ?? coalescing — handles both missing fields and null values from corrupted state
+- [04-02]: Gate on hasSeenOnboarding (persisted) not currentScreen (not persisted) — currentScreen resets on every page load so it cannot prevent onboarding flash
+- [04-02]: micExplained is session-local useState, not persisted — after browser grants permission, subsequent sessions return 'granted' from Permissions API and skip explain screen
+- [04-02]: MicExplainScreen is overlay with onContinue prop, not a full currentScreen value — keeps screen routing clean
+- [04-02]: Safari fallback defaults to 'prompt' (show explain screen) — conservative default ensures explain screen always shows on unsupported browsers
 
 ### Pending Todos
 
@@ -104,5 +109,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 04-01-PLAN.md (SettingsSlice v2, latency slider, audio timestamp offset)
-Resume file: .planning/phases/04-ux-polish/04-02-PLAN.md (onboarding screen)
+Stopped at: Completed 04-02-PLAN.md (OnboardingScreen, MicExplainScreen, AppShell gates)
+Resume file: .planning/phases/04-ux-polish/04-03-PLAN.md
