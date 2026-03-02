@@ -16,8 +16,10 @@ interface SettingsPanelProps {
 export function SettingsPanel({ onClose }: SettingsPanelProps) {
   const penaltyMode = useBoundStore((s) => s.settings.penaltyMode)
   const inputSource = useBoundStore((s) => s.settings.inputSource)
+  const latencyOffsetMs = useBoundStore((s) => s.settings.latencyOffsetMs)
   const setPenaltyMode = useBoundStore((s) => s.setPenaltyMode)
   const setInputSource = useBoundStore((s) => s.setInputSource)
+  const setLatencyOffset = useBoundStore((s) => s.setLatencyOffset)
 
   const cardClass =
     'flex flex-col gap-8 rounded-2xl bg-gray-900/90 border border-white/10 px-12 py-10 text-white shadow-2xl backdrop-blur-sm w-full max-w-md'
@@ -97,6 +99,30 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
               Microphone access requires enabling after switching to game screen.
             </p>
           )}
+        </div>
+
+        {/* Latency Offset */}
+        <div className="flex flex-col gap-3">
+          <label className="text-sm font-semibold text-white/70 tracking-wider uppercase">
+            Latency Offset
+          </label>
+          <div className="flex items-center gap-3">
+            <input
+              type="range"
+              min={-200}
+              max={200}
+              step={10}
+              value={latencyOffsetMs}
+              onChange={(e) => setLatencyOffset(Number(e.target.value))}
+              className="flex-1 accent-white cursor-pointer"
+            />
+            <span className="text-sm text-white/70 w-16 text-right font-mono">
+              {latencyOffsetMs > 0 ? '+' : ''}{latencyOffsetMs}ms
+            </span>
+          </div>
+          <p className="text-xs text-white/40">
+            Increase if notes register late; decrease if they register early.
+          </p>
         </div>
 
         {/* Close */}

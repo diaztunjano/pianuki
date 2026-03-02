@@ -71,6 +71,9 @@ export function useAudioInput(enabled = true): void {
         function poll(): void {
           analyser.getFloatTimeDomainData(buffer)
 
+          // Read latency offset once per frame for consistency across all events this tick
+          const latencyOffsetMs = useBoundStore.getState().settings.latencyOffsetMs
+
           // RMS silence gate
           let sumSquares = 0
           for (let i = 0; i < buffer.length; i++) {
@@ -86,7 +89,7 @@ export function useAudioInput(enabled = true): void {
                 note: lastNoteRef.current,
                 noteName: midiNoteToName(lastNoteRef.current),
                 source: 'mic',
-                timestamp: performance.now(),
+                timestamp: performance.now() - latencyOffsetMs,
               })
               lastNoteRef.current = null
             }
@@ -108,7 +111,7 @@ export function useAudioInput(enabled = true): void {
                   note: lastNoteRef.current,
                   noteName: midiNoteToName(lastNoteRef.current),
                   source: 'mic',
-                  timestamp: performance.now(),
+                  timestamp: performance.now() - latencyOffsetMs,
                 })
               }
 
@@ -120,7 +123,7 @@ export function useAudioInput(enabled = true): void {
                 source: 'mic',
                 frequency,
                 confidence: clarity,
-                timestamp: performance.now(),
+                timestamp: performance.now() - latencyOffsetMs,
               })
 
               lastNoteRef.current = midiNote
@@ -133,7 +136,7 @@ export function useAudioInput(enabled = true): void {
                 note: lastNoteRef.current,
                 noteName: midiNoteToName(lastNoteRef.current),
                 source: 'mic',
-                timestamp: performance.now(),
+                timestamp: performance.now() - latencyOffsetMs,
               })
               lastNoteRef.current = null
             }
