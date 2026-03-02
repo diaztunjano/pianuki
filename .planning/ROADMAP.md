@@ -13,7 +13,7 @@ Four phases build from nothing to a shippable piano tower defense game. Phase 1 
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - Audio pipeline proven, game scaffold in place, static world renders
-- [ ] **Phase 2: Core Loop** - Enemies walk, notes kill them, waves complete — game is playable
+- [x] **Phase 2: Core Loop** - Enemies walk, notes kill them, waves complete — game is playable
 - [ ] **Phase 3: Complete Game** - Progression, persistence, and settings make it a full product
 - [ ] **Phase 4: UX Polish** - First-run flows, latency calibration, and stats make it shippable
 
@@ -44,12 +44,12 @@ Plans:
   3. Playing an incorrect note produces a distinct visual effect different from a correct hit
   4. Player survives or loses HP across 3-5 waves per level, with a wave-clear screen appearing between waves
   5. Player can pause and resume gameplay at any time; game over screen appears when HP reaches zero with restart and menu options
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans executed
 Plans:
 - [x] 02-01-PLAN.md — Game state engine: GameSlice expansion, enemy types, wave configs, note matching
 - [x] 02-02-PLAN.md — Game loop + canvas rendering: fixed-timestep update, enemy movement, HUD, visual feedback
-- [ ] 02-03-PLAN.md — UI overlays + controls: start/pause/gameover/wave-clear screens, ESC key handler
-- [ ] 02-04-PLAN.md — Human verification checkpoint (verify core loop with real piano)
+- [x] 02-03-PLAN.md — UI overlays + controls: start/pause/gameover/wave-clear screens, ESC key handler
+- [x] 02-04-PLAN.md — Human verification checkpoint (verified + fixed immer MapSet + tuned mic thresholds)
 
 ### Phase 3: Complete Game
 **Goal**: The game has persistent progression across sessions — player can select levels, complete them to unlock the next, and configure gameplay to their preferences
@@ -81,6 +81,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | Complete | 2026-03-01 |
-| 2. Core Loop | 3/4 | In Progress|  |
+| 2. Core Loop | 4/4 | Complete | 2026-03-02 |
 | 3. Complete Game | 0/TBD | Not started | - |
 | 4. UX Polish | 0/TBD | Not started | - |

@@ -5,34 +5,34 @@
 See: .planning/PROJECT.md (updated 2026-02-27)
 
 **Core value:** A piano learner can sit at their real piano, start the game in a browser, and progressively learn music theory by playing through increasingly challenging tower defense waves that feel like a game, not a lesson.
-**Current focus:** Phase 2 — Core Loop
+**Current focus:** Phase 2 complete — ready for Phase 3
 
 ## Current Position
 
-Phase: 2 of 4 (Core Loop)
-Plan: 3 of 4 in current phase
-Status: In progress
-Last activity: 2026-03-01 — 02-03 complete (game UI overlays + ESC pause/resume)
+Phase: 2 of 4 (Core Loop) — COMPLETE
+Plan: 4 of 4 in current phase (all done)
+Status: Phase complete
+Last activity: 2026-03-02 — 02-04 human verification passed, immer MapSet fix applied
 
-Progress: [██████░░░░] 43%
+Progress: [██████████] 50%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
-- Average duration: 2.2 min
-- Total execution time: 13 min
+- Total plans completed: 7
+- Average duration: 2.1 min
+- Total execution time: 15 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation | 3 | 8 min | 2.7 min |
-| 02-core-loop | 3 | 5 min | 1.7 min |
+| 02-core-loop | 4 | 7 min | 1.8 min |
 
 **Recent Trend:**
-- Last 5 plans: 1 min, 2 min, 1 min, 2 min, 2 min
-- Trend: consistent
+- Last 5 plans: 2 min, 1 min, 2 min, 2 min, 5 min
+- Trend: consistent (02-04 longer due to bugfix)
 
 *Updated after each plan completion*
 
@@ -66,6 +66,8 @@ Recent decisions affecting current work:
 - [02-03]: Narrow selectors (one useBoundStore per field) in GameOverlay to avoid re-renders when unrelated state changes
 - [02-03]: ESC handler uses getState() not hook subscription — canonical pattern for keyboard shortcuts in event listeners
 - [02-03]: Mic overlay bumped to z-30 so it always sits above GameOverlay (z-20) — mic enable must never be blocked by game UI
+- [02-04]: enableMapSet() required when using immer with Set/Map in Zustand — immer does not support these natively
+- [02-04]: Clarity threshold tuned from 0.9 to 0.75 for real piano mic detection; silence threshold from 0.01 to 0.005
 
 ### Pending Todos
 
@@ -77,6 +79,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-01
-Stopped at: 02-03 complete — game UI overlays + ESC pause handler done; ready for 02-04 (audio-game integration)
-Resume file: .planning/phases/02-core-loop/02-04-PLAN.md
+Last session: 2026-03-02
+Stopped at: Phase 2 complete — all 4 plans executed and verified. Ready for Phase 3 planning.
+Resume file: .planning/ROADMAP.md (Phase 3: Complete Game)
