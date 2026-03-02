@@ -1,5 +1,7 @@
 import { useBoundStore } from '../stores'
 import { isNoteMatch } from './noteMatch'
+import { recordEnemySpawned, recordCorrectHit, recordMiss, computeLevelResult } from './statsTracker'
+import type { Enemy } from './enemyTypes'
 
 // Module-level state for wrong-note detection
 // Tracks the timestamp of the last NoteOn event we already processed
@@ -21,6 +23,7 @@ export function update(dt: number): void {
       // Pop the first entry and spawn it
       const entry = spawnState.spawnQueue[0]
       useBoundStore.getState().spawnEnemy(entry)
+      recordEnemySpawned()
       // Remove the entry from the queue and reset accumulator
       useBoundStore.setState((s) => {
         s.spawnQueue = s.spawnQueue.slice(1)
@@ -44,11 +47,38 @@ export function update(dt: number): void {
 
   // -------------------------------------------------------------------
   // Step 3: Check if any enemy reached the goal (pathT >= 1.0)
+  // Branches on penaltyMode: easy (no damage), normal (HP damage), hard (loop back)
   // -------------------------------------------------------------------
   const postMoveState = useBoundStore.getState()
+  const { penaltyMode } = postMoveState.settings
   for (const enemy of postMoveState.enemies) {
     if (enemy.pathT >= 1.0 && enemy.state === 'alive') {
-      useBoundStore.getState().enemyReachedGoal(enemy.id)
+      if (penaltyMode === 'easy') {
+        // No penalty — just kill the enemy silently
+        useBoundStore.setState((s) => {
+          const e = s.enemies.find((x: Enemy) => x.id === enemy.id)
+          if (e) e.state = 'dead'
+        })
+      } else if (penaltyMode === 'hard') {
+        // Hard — reset enemy to start of path (with loop protection)
+        useBoundStore.setState((s) => {
+          const e = s.enemies.find((x: Enemy) => x.id === enemy.id)
+          if (e) {
+            e.loopCount = (e.loopCount ?? 0) + 1
+            if (e.loopCount >= 3) {
+              // Failsafe: after 3 loops, convert to normal HP damage
+              e.state = 'dead'
+              s.playerHP -= 1
+              if (s.playerHP <= 0) s.gamePhase = 'gameover'
+            } else {
+              e.pathT = 0
+            }
+          }
+        })
+      } else {
+        // Normal (default) — existing HP damage behavior
+        useBoundStore.getState().enemyReachedGoal(enemy.id)
+      }
     }
   }
 
@@ -59,6 +89,9 @@ export function update(dt: number): void {
   const { activeNotes } = matchState
   for (const enemy of matchState.enemies) {
     if (enemy.state === 'alive' && isNoteMatch(enemy, activeNotes)) {
+      const hitTimeMs = performance.now()
+      const reactionMs = hitTimeMs - enemy.spawnedAtMs
+      recordCorrectHit(reactionMs)
       useBoundStore.getState().damageEnemy(enemy.id, 1)
     }
   }
@@ -89,6 +122,7 @@ export function update(dt: number): void {
       )
       if (!matchesAnyEnemy && aliveEnemies.length > 0) {
         wrongNoteDetected = true
+        recordMiss(event.noteName)
       }
     }
   }
@@ -128,8 +162,10 @@ export function update(dt: number): void {
       // More waves remain — show wave-clear screen
       useBoundStore.setState({ gamePhase: 'wave-clear' })
     } else {
-      // All waves complete — level done
-      useBoundStore.setState({ gamePhase: 'idle' })
+      // All waves complete — compute stats and transition to level-complete
+      const result = computeLevelResult(waveCheckState.currentLevel)
+      useBoundStore.getState().recordLevelComplete(waveCheckState.currentLevel, result)
+      useBoundStore.setState({ gamePhase: 'level-complete', lastLevelResult: result })
     }
   }
 }

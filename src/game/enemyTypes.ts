@@ -19,6 +19,7 @@ export interface Enemy {
   defeatedFrames: number       // countdown frames for death animation
   color: string                // hex color string
   spawnedAtMs: number          // performance.now() at spawn time — used for reaction time calculation
+  loopCount?: number           // hard mode: number of times this enemy has looped back to start
 }
 
 /**

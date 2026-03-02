@@ -4,6 +4,7 @@ import { immer } from 'zustand/middleware/immer'
 import { enableMapSet } from 'immer'
 import { Enemy, EnemySpawnEntry, buildEnemy } from '../game/enemyTypes'
 import { LEVEL_CONFIGS } from '../game/waveConfig'
+import { resetStats } from '../game/statsTracker'
 
 // Enable immer support for Set/Map (needed for activeNotes: Set<number>)
 enableMapSet()
@@ -127,6 +128,9 @@ interface GameSlice {
   // Visual feedback
   wrongNoteFlashFrames: number
 
+  // Level result — populated on level completion, read by LevelSummaryScreen
+  lastLevelResult: LevelResult | null
+
   // Actions
   navigateTo: (screen: 'levelSelect' | 'game' | 'stats') => void
   startLevel: (levelIndex: number) => void
@@ -163,6 +167,7 @@ const createGameSlice: StateCreator<
   spawnAccumulator: 0,
   spawnIntervalMs: 2000,
   wrongNoteFlashFrames: 0,
+  lastLevelResult: null,
 
   // --- Actions ---
 
@@ -175,7 +180,8 @@ const createGameSlice: StateCreator<
       'game/navigateTo',
     ),
 
-  startLevel: (levelIndex) =>
+  startLevel: (levelIndex) => {
+    resetStats()
     set(
       (draft) => {
         const level = LEVEL_CONFIGS[levelIndex]
@@ -192,12 +198,15 @@ const createGameSlice: StateCreator<
         draft.spawnIntervalMs = wave.spawnIntervalMs
         draft.spawnAccumulator = 0
         draft.wrongNoteFlashFrames = 0
+        draft.lastLevelResult = null
       },
       false,
       'game/startLevel',
-    ),
+    )
+  },
 
-  startGame: (levelIndex) =>
+  startGame: (levelIndex) => {
+    resetStats()
     set(
       (draft) => {
         const level = LEVEL_CONFIGS[levelIndex]
@@ -213,10 +222,12 @@ const createGameSlice: StateCreator<
         draft.spawnIntervalMs = wave.spawnIntervalMs
         draft.spawnAccumulator = 0
         draft.wrongNoteFlashFrames = 0
+        draft.lastLevelResult = null
       },
       false,
       'game/startGame',
-    ),
+    )
+  },
 
   pauseGame: () =>
     set(
@@ -361,6 +372,7 @@ const createGameSlice: StateCreator<
         draft.spawnAccumulator = 0
         draft.spawnIntervalMs = 2000
         draft.wrongNoteFlashFrames = 0
+        draft.lastLevelResult = null
       },
       false,
       'game/resetGame',
