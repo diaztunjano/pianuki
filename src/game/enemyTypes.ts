@@ -18,6 +18,7 @@ export interface Enemy {
   state: 'alive' | 'dying' | 'dead'
   defeatedFrames: number       // countdown frames for death animation
   color: string                // hex color string
+  spawnedAtMs: number          // performance.now() at spawn time — used for reaction time calculation
 }
 
 /**
@@ -53,5 +54,6 @@ export function buildEnemy(entry: EnemySpawnEntry): Enemy {
     state: 'alive',
     defeatedFrames: 0,
     color: entry.color,
+    spawnedAtMs: performance.now(),
   }
 }
