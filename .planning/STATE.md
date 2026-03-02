@@ -80,5 +80,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Phase 2 complete — all 4 plans executed and verified. Ready for Phase 3 planning.
-Resume file: .planning/ROADMAP.md (Phase 3: Complete Game)
+Stopped at: Phase 3 context gathered
+Resume file: .planning/phases/03-complete-game/03-CONTEXT.md
