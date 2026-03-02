@@ -54,6 +54,8 @@ export interface PersistedState {
   settings: {
     penaltyMode: 'easy' | 'normal' | 'hard'
     inputSource: 'mic' | 'midi'
+    latencyOffsetMs: number
+    hasSeenOnboarding: boolean
   }
 }
 
@@ -465,9 +467,13 @@ interface SettingsSlice {
   settings: {
     penaltyMode: 'easy' | 'normal' | 'hard'
     inputSource: 'mic' | 'midi'
+    latencyOffsetMs: number        // range -200..200, default 0
+    hasSeenOnboarding: boolean     // first-run gate, default false
   }
   setPenaltyMode: (mode: 'easy' | 'normal' | 'hard') => void
   setInputSource: (source: 'mic' | 'midi') => void
+  setLatencyOffset: (ms: number) => void
+  markOnboardingSeen: () => void
 }
 
 const createSettingsSlice: StateCreator<
@@ -479,6 +485,8 @@ const createSettingsSlice: StateCreator<
   settings: {
     penaltyMode: 'normal',
     inputSource: 'mic',
+    latencyOffsetMs: 0,
+    hasSeenOnboarding: false,
   },
 
   setPenaltyMode: (mode) =>
@@ -498,6 +506,24 @@ const createSettingsSlice: StateCreator<
       false,
       'settings/setInputSource',
     ),
+
+  setLatencyOffset: (ms) =>
+    set(
+      (draft) => {
+        draft.settings.latencyOffsetMs = ms
+      },
+      false,
+      'settings/setLatencyOffset',
+    ),
+
+  markOnboardingSeen: () =>
+    set(
+      (draft) => {
+        draft.settings.hasSeenOnboarding = true
+      },
+      false,
+      'settings/markOnboardingSeen',
+    ),
 })
 
 // --- Bound Store ---
@@ -516,12 +542,19 @@ export const useBoundStore = create<BoundStore>()(
       {
         name: 'pianuki-progress',
         storage: createJSONStorage(() => localStorage),
-        version: 1,
+        version: 2,
         partialize: (state): PersistedState => ({
           progress: state.progress,
           settings: state.settings,
         }),
-        migrate: (persistedState, _version) => persistedState as PersistedState,
+        migrate: (persistedState, version) => {
+          const state = persistedState as PersistedState
+          if (version < 2) {
+            state.settings.latencyOffsetMs = state.settings.latencyOffsetMs ?? 0
+            state.settings.hasSeenOnboarding = state.settings.hasSeenOnboarding ?? false
+          }
+          return state
+        },
       },
     ),
     { name: 'pianuki-store' },
