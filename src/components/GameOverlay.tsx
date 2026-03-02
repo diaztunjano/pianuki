@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { useBoundStore } from '../stores'
+import { SettingsPanel } from './SettingsPanel'
 
 /**
  * GameOverlay — renders the appropriate full-screen overlay based on gamePhase.
@@ -23,6 +25,7 @@ export function GameOverlay() {
   const totalWaves = useBoundStore((s) => s.totalWaves)
   const playerHP = useBoundStore((s) => s.playerHP)
   const maxPlayerHP = useBoundStore((s) => s.maxPlayerHP)
+  const [showSettings, setShowSettings] = useState(false)
 
   if (gamePhase === 'playing') return null
 
@@ -75,12 +78,20 @@ export function GameOverlay() {
             </button>
             <button
               className={secondaryBtnClass}
+              onClick={() => setShowSettings(true)}
+            >
+              Settings
+            </button>
+            <button
+              className={secondaryBtnClass}
               onClick={() => resetGame()}
             >
               Quit to Menu
             </button>
           </div>
         </div>
+        {/* Settings panel overlays on top of pause card (z-25 > z-20) */}
+        {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
       </div>
     )
   }

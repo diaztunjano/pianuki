@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { LEVEL_CONFIGS } from '../game/waveConfig'
 import { useBoundStore } from '../stores'
+import { SettingsPanel } from './SettingsPanel'
 
 /**
  * Node positions in a zigzag/path-map layout — like Mario World.
@@ -56,6 +58,7 @@ export function LevelSelectScreen() {
   const progress = useBoundStore((s) => s.progress)
   const startLevel = useBoundStore((s) => s.startLevel)
   const navigateTo = useBoundStore((s) => s.navigateTo)
+  const [showSettings, setShowSettings] = useState(false)
 
   const levels = progress.levels
 
@@ -95,10 +98,10 @@ export function LevelSelectScreen() {
 
       {/* Top bar: Settings | Title | Stats */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 flex-shrink-0">
-        {/* Settings button — Plan 04 will wire the real panel */}
+        {/* Settings button */}
         <button
           className="px-3 py-1.5 text-sm text-white/50 hover:text-white/80 transition-colors rounded-lg hover:bg-white/5"
-          onClick={() => { /* Plan 04 */ }}
+          onClick={() => setShowSettings(true)}
           aria-label="Settings"
         >
           ⚙
@@ -206,6 +209,9 @@ export function LevelSelectScreen() {
           })}
         </div>
       </div>
+
+      {/* Settings panel modal — z-25 sits above game UI (z-20) */}
+      {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
     </div>
   )
 }
