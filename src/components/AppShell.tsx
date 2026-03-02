@@ -4,26 +4,10 @@ import { KeyboardStrip } from './KeyboardStrip'
 import { DebugPanel } from './DebugPanel'
 import { GameOverlay } from './GameOverlay'
 import { LevelSelectScreen } from './LevelSelectScreen'
+import { StatsScreen } from './StatsScreen'
 import { useMidiInput } from '../hooks/useMidiInput'
 import { useAudioInput } from '../hooks/useAudioInput'
 import { useBoundStore } from '../stores'
-
-// --- Stub screens still pending replacement ---
-
-function StatsScreen() {
-  const navigateTo = useBoundStore((s) => s.navigateTo)
-  return (
-    <div className="flex-1 flex flex-col items-center justify-center gap-4 text-white">
-      <h1 className="text-4xl font-bold">Stats</h1>
-      <button
-        className="px-6 py-3 bg-white/10 rounded-xl hover:bg-white/20 active:scale-95 transition-all"
-        onClick={() => navigateTo('levelSelect')}
-      >
-        Back
-      </button>
-    </div>
-  )
-}
 
 // --- AppShell ---
 
