@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useBoundStore } from '../stores'
 import { SettingsPanel } from './SettingsPanel'
+import { LevelSummaryOverlay } from './LevelSummaryOverlay'
 
 /**
  * GameOverlay — renders the appropriate full-screen overlay based on gamePhase.
@@ -9,25 +10,30 @@ import { SettingsPanel } from './SettingsPanel'
  * gameplay so the canvas is fully visible.
  *
  * Screens:
- *   idle      → Start screen with title and Start Game button
- *   paused    → Pause screen with HP/wave info and Resume / Quit buttons
- *   gameover  → Game Over screen with wave-reached info and Try Again / Main Menu
- *   wave-clear → Wave Complete screen with wave number and Next Wave button
- *   playing   → null (no overlay)
+ *   idle          → null (transient state; player navigates via LevelSelectScreen)
+ *   paused        → Pause screen with HP/wave info and Resume / Quit buttons
+ *   gameover      → Game Over screen with wave-reached info and Try Again / Main Menu
+ *   wave-clear    → Wave Complete screen with wave number and Next Wave button
+ *   level-complete → LevelSummaryOverlay with accuracy, stars, reaction time
+ *   playing       → null (no overlay)
  */
 export function GameOverlay() {
   const gamePhase = useBoundStore((s) => s.gamePhase)
-  const startGame = useBoundStore((s) => s.startGame)
   const resumeGame = useBoundStore((s) => s.resumeGame)
   const advanceWave = useBoundStore((s) => s.advanceWave)
-  const resetGame = useBoundStore((s) => s.resetGame)
   const currentWave = useBoundStore((s) => s.currentWave)
   const totalWaves = useBoundStore((s) => s.totalWaves)
   const playerHP = useBoundStore((s) => s.playerHP)
   const maxPlayerHP = useBoundStore((s) => s.maxPlayerHP)
+  const currentLevel = useBoundStore((s) => s.currentLevel)
+  const startLevel = useBoundStore((s) => s.startLevel)
+  const navigateTo = useBoundStore((s) => s.navigateTo)
   const [showSettings, setShowSettings] = useState(false)
 
   if (gamePhase === 'playing') return null
+
+  // Transient state — LevelSelectScreen handles navigation
+  if (gamePhase === 'idle') return null
 
   const wrapperClass =
     'absolute inset-0 flex items-center justify-center bg-black/70 z-20'
@@ -41,20 +47,11 @@ export function GameOverlay() {
   const secondaryBtnClass =
     'rounded-xl bg-white/5 border border-white/10 px-8 py-3 text-base font-medium text-white/70 hover:bg-white/10 active:scale-95 transition-all'
 
-  // --- Idle screen ---
-  if (gamePhase === 'idle') {
+  // --- Level complete screen ---
+  if (gamePhase === 'level-complete') {
     return (
       <div className={wrapperClass}>
-        <div className={cardClass}>
-          <h1 className="text-5xl font-black tracking-widest">PIANUKI</h1>
-          <p className="text-lg text-white/60">Tower Defense for Piano</p>
-          <button
-            className={primaryBtnClass}
-            onClick={() => startGame(0)}
-          >
-            Start Game
-          </button>
-        </div>
+        <LevelSummaryOverlay />
       </div>
     )
   }
@@ -84,7 +81,7 @@ export function GameOverlay() {
             </button>
             <button
               className={secondaryBtnClass}
-              onClick={() => resetGame()}
+              onClick={() => navigateTo('levelSelect')}
             >
               Quit to Menu
             </button>
@@ -110,13 +107,13 @@ export function GameOverlay() {
           <div className="flex flex-col gap-3 w-full">
             <button
               className={primaryBtnClass}
-              onClick={() => startGame(0)}
+              onClick={() => startLevel(currentLevel)}
             >
               Try Again
             </button>
             <button
               className={secondaryBtnClass}
-              onClick={() => resetGame()}
+              onClick={() => navigateTo('levelSelect')}
             >
               Main Menu
             </button>
