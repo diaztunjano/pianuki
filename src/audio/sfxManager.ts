@@ -10,6 +10,8 @@
  * `sfxManager.setContext(ctx)` to reuse it.
  */
 
+import { useBoundStore } from '../stores/audioStore';
+
 let ctx: AudioContext | null = null;
 
 function getCtx(): AudioContext {
@@ -21,6 +23,15 @@ function getCtx(): AudioContext {
     void ctx.resume();
   }
   return ctx;
+}
+
+/**
+ * Returns the current SFX volume (0–1) from the store, or 0 if SFX is disabled.
+ * Every play* function calls this to gate output.
+ */
+function getSfxVolume(): number {
+  const { sfxEnabled, sfxVolume } = useBoundStore.getState().settings;
+  return sfxEnabled ? sfxVolume : 0;
 }
 
 /** Allow external code (e.g. mic hook) to share its AudioContext. */
@@ -50,11 +61,13 @@ function osc(
 
 /** Short bright chime — correct note hit */
 export function playCorrect(): void {
+  const vol = getSfxVolume();
+  if (vol === 0) return;
   const ac = getCtx();
   const t = ac.currentTime;
   const g = ac.createGain();
   g.connect(ac.destination);
-  g.gain.setValueAtTime(0.3, t);
+  g.gain.setValueAtTime(0.3 * vol, t);
   g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
 
   osc(ac, 'sine', 880, t, t + 0.3, g);
@@ -63,11 +76,13 @@ export function playCorrect(): void {
 
 /** Buzzy dissonant blip — wrong note */
 export function playWrong(): void {
+  const vol = getSfxVolume();
+  if (vol === 0) return;
   const ac = getCtx();
   const t = ac.currentTime;
   const g = ac.createGain();
   g.connect(ac.destination);
-  g.gain.setValueAtTime(0.25, t);
+  g.gain.setValueAtTime(0.25 * vol, t);
   g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
 
   osc(ac, 'sawtooth', 150, t, t + 0.25, g);
@@ -76,11 +91,13 @@ export function playWrong(): void {
 
 /** Quick descending pop — enemy defeated */
 export function playEnemyDeath(): void {
+  const vol = getSfxVolume();
+  if (vol === 0) return;
   const ac = getCtx();
   const t = ac.currentTime;
   const g = ac.createGain();
   g.connect(ac.destination);
-  g.gain.setValueAtTime(0.3, t);
+  g.gain.setValueAtTime(0.3 * vol, t);
   g.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
 
   const o = ac.createOscillator();
@@ -94,6 +111,8 @@ export function playEnemyDeath(): void {
 
 /** Rising arpeggio — wave starts */
 export function playWaveStart(): void {
+  const vol = getSfxVolume();
+  if (vol === 0) return;
   const ac = getCtx();
   const t = ac.currentTime;
   const notes = [523.25, 659.25, 783.99, 1046.5]; // C5 E5 G5 C6
@@ -102,7 +121,7 @@ export function playWaveStart(): void {
     const g = ac.createGain();
     g.connect(ac.destination);
     const start = t + i * 0.1;
-    g.gain.setValueAtTime(0.2, start);
+    g.gain.setValueAtTime(0.2 * vol, start);
     g.gain.exponentialRampToValueAtTime(0.001, start + 0.15);
     osc(ac, 'sine', freq, start, start + 0.15, g);
   });
@@ -110,6 +129,8 @@ export function playWaveStart(): void {
 
 /** Descending arpeggio — wave complete */
 export function playWaveEnd(): void {
+  const vol = getSfxVolume();
+  if (vol === 0) return;
   const ac = getCtx();
   const t = ac.currentTime;
   const notes = [1046.5, 783.99, 659.25, 523.25]; // C6 G5 E5 C5
@@ -118,7 +139,7 @@ export function playWaveEnd(): void {
     const g = ac.createGain();
     g.connect(ac.destination);
     const start = t + i * 0.1;
-    g.gain.setValueAtTime(0.2, start);
+    g.gain.setValueAtTime(0.2 * vol, start);
     g.gain.exponentialRampToValueAtTime(0.001, start + 0.2);
     osc(ac, 'sine', freq, start, start + 0.2, g);
   });
@@ -126,20 +147,22 @@ export function playWaveEnd(): void {
 
 /** Dramatic low rumble + descending tone — game over */
 export function playGameOver(): void {
+  const vol = getSfxVolume();
+  if (vol === 0) return;
   const ac = getCtx();
   const t = ac.currentTime;
 
   // Low rumble
   const gRumble = ac.createGain();
   gRumble.connect(ac.destination);
-  gRumble.gain.setValueAtTime(0.3, t);
+  gRumble.gain.setValueAtTime(0.3 * vol, t);
   gRumble.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
   osc(ac, 'sawtooth', 80, t, t + 1.2, gRumble);
 
   // Descending tone
   const gTone = ac.createGain();
   gTone.connect(ac.destination);
-  gTone.gain.setValueAtTime(0.25, t + 0.1);
+  gTone.gain.setValueAtTime(0.25 * vol, t + 0.1);
   gTone.gain.exponentialRampToValueAtTime(0.001, t + 1.0);
 
   const o = ac.createOscillator();
