@@ -568,7 +568,7 @@ export const useBoundStore = create<BoundStore>()(
       {
         name: 'pianuki-progress',
         storage: createJSONStorage(() => localStorage),
-        version: 2,
+        version: 3,
         partialize: (state): PersistedState => ({
           progress: state.progress,
           settings: state.settings,
@@ -578,6 +578,10 @@ export const useBoundStore = create<BoundStore>()(
           if (version < 2) {
             state.settings.latencyOffsetMs = state.settings.latencyOffsetMs ?? 0
             state.settings.hasSeenOnboarding = state.settings.hasSeenOnboarding ?? false
+          }
+          if (version < 3) {
+            state.settings.sfxEnabled = state.settings.sfxEnabled ?? true
+            state.settings.sfxVolume = state.settings.sfxVolume ?? 0.7
           }
           return state
         },
