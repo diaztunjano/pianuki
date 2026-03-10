@@ -72,9 +72,11 @@ export function playWrong(): void {
 /** Quick descending pop — enemy defeated. */
 export function playEnemyDeath(): void {
   const ac = getCtx();
+  const master = sfxGate(ac);
+  if (!master) return;
   const t = ac.currentTime;
   const g = ac.createGain();
-  g.connect(ac.destination);
+  g.connect(master);
   g.gain.setValueAtTime(0.2, t);
   g.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
 
@@ -90,12 +92,14 @@ export function playEnemyDeath(): void {
 /** Rising arpeggio — wave starting. */
 export function playWaveStart(): void {
   const ac = getCtx();
+  const master = sfxGate(ac);
+  if (!master) return;
   const t = ac.currentTime;
   const notes = [261.63, 329.63, 392.0, 523.25]; // C4 E4 G4 C5
 
   notes.forEach((freq, i) => {
     const g = ac.createGain();
-    g.connect(ac.destination);
+    g.connect(master);
     const start = t + i * 0.1;
     g.gain.setValueAtTime(0.15, start);
     g.gain.exponentialRampToValueAtTime(0.001, start + 0.15);
@@ -106,12 +110,14 @@ export function playWaveStart(): void {
 /** Descending arpeggio — wave complete. */
 export function playWaveEnd(): void {
   const ac = getCtx();
+  const master = sfxGate(ac);
+  if (!master) return;
   const t = ac.currentTime;
   const notes = [523.25, 392.0, 329.63, 261.63]; // C5 G4 E4 C4
 
   notes.forEach((freq, i) => {
     const g = ac.createGain();
-    g.connect(ac.destination);
+    g.connect(master);
     const start = t + i * 0.12;
     g.gain.setValueAtTime(0.15, start);
     g.gain.exponentialRampToValueAtTime(0.001, start + 0.2);

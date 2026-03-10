@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useBoundStore } from '../stores'
 import { SettingsPanel } from './SettingsPanel'
 import { LevelSummaryOverlay } from './LevelSummaryOverlay'
+import { playWaveStart } from '../audio/sfxManager'
 
 /**
  * GameOverlay — renders the appropriate full-screen overlay based on gamePhase.
@@ -137,7 +138,7 @@ export function GameOverlay() {
           <p className="text-xs text-white/30">Upgrades coming soon...</p>
           <button
             className={primaryBtnClass}
-            onClick={() => advanceWave()}
+            onClick={() => { playWaveStart(); advanceWave(); }}
           >
             Next Wave
           </button>

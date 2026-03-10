@@ -163,6 +163,7 @@ export function update(dt: number): void {
       useBoundStore.setState({ gamePhase: 'wave-clear' })
     } else {
       // All waves complete — compute stats and transition to level-complete
+      playWaveEnd()
       const result = computeLevelResult(waveCheckState.currentLevel)
       useBoundStore.getState().recordLevelComplete(waveCheckState.currentLevel, result)
       useBoundStore.setState({ gamePhase: 'level-complete', lastLevelResult: result })
