@@ -5,6 +5,8 @@
  * All sounds are generated with OscillatorNode + GainNode envelopes — no audio files.
  */
 
+import { useBoundStore } from '../stores/audioStore'
+
 let ctx: AudioContext | null = null
 
 function getCtx(): AudioContext {
@@ -12,6 +14,17 @@ function getCtx(): AudioContext {
   // Resume if suspended (autoplay policy)
   if (ctx.state === 'suspended') void ctx.resume()
   return ctx
+}
+
+/** Check store — returns null if SFX disabled, otherwise the volume-scaled gain destination. */
+function getSfxGain(): { ac: AudioContext; dest: GainNode } | null {
+  const { sfxEnabled, sfxVolume } = useBoundStore.getState().settings
+  if (!sfxEnabled) return null
+  const ac = getCtx()
+  const master = ac.createGain()
+  master.gain.value = sfxVolume
+  master.connect(ac.destination)
+  return { ac, dest: master }
 }
 
 /** Inject an external AudioContext (e.g. from mic input) to share resources. */
@@ -41,10 +54,12 @@ function osc(
 
 /** Happy chime — two quick ascending sine tones. */
 export function playCorrect(): void {
-  const ac = getCtx()
+  const sfx = getSfxGain()
+  if (!sfx) return
+  const { ac, dest } = sfx
   const t = ac.currentTime
   const g = ac.createGain()
-  g.connect(ac.destination)
+  g.connect(dest)
   g.gain.setValueAtTime(0.3, t)
   g.gain.exponentialRampToValueAtTime(0.001, t + 0.3)
 
@@ -54,10 +69,12 @@ export function playCorrect(): void {
 
 /** Buzzy wrong note — short low square wave. */
 export function playWrong(): void {
-  const ac = getCtx()
+  const sfx = getSfxGain()
+  if (!sfx) return
+  const { ac, dest } = sfx
   const t = ac.currentTime
   const g = ac.createGain()
-  g.connect(ac.destination)
+  g.connect(dest)
   g.gain.setValueAtTime(0.25, t)
   g.gain.exponentialRampToValueAtTime(0.001, t + 0.25)
 
@@ -67,10 +84,12 @@ export function playWrong(): void {
 
 /** Enemy death — quick descending pitch sweep. */
 export function playEnemyDeath(): void {
-  const ac = getCtx()
+  const sfx = getSfxGain()
+  if (!sfx) return
+  const { ac, dest } = sfx
   const t = ac.currentTime
   const g = ac.createGain()
-  g.connect(ac.destination)
+  g.connect(dest)
   g.gain.setValueAtTime(0.3, t)
   g.gain.exponentialRampToValueAtTime(0.001, t + 0.2)
 
@@ -85,10 +104,12 @@ export function playEnemyDeath(): void {
 
 /** Wave start — rising arpeggio (C5-E5-G5). */
 export function playWaveStart(): void {
-  const ac = getCtx()
+  const sfx = getSfxGain()
+  if (!sfx) return
+  const { ac, dest } = sfx
   const t = ac.currentTime
   const g = ac.createGain()
-  g.connect(ac.destination)
+  g.connect(dest)
   g.gain.setValueAtTime(0.2, t)
   g.gain.setValueAtTime(0.2, t + 0.35)
   g.gain.exponentialRampToValueAtTime(0.001, t + 0.5)
@@ -100,10 +121,12 @@ export function playWaveStart(): void {
 
 /** Wave end — descending soft tones (G5-E5-C5). */
 export function playWaveEnd(): void {
-  const ac = getCtx()
+  const sfx = getSfxGain()
+  if (!sfx) return
+  const { ac, dest } = sfx
   const t = ac.currentTime
   const g = ac.createGain()
-  g.connect(ac.destination)
+  g.connect(dest)
   g.gain.setValueAtTime(0.2, t)
   g.gain.setValueAtTime(0.2, t + 0.4)
   g.gain.exponentialRampToValueAtTime(0.001, t + 0.6)
@@ -115,10 +138,12 @@ export function playWaveEnd(): void {
 
 /** Game over — ominous low descending tones. */
 export function playGameOver(): void {
-  const ac = getCtx()
+  const sfx = getSfxGain()
+  if (!sfx) return
+  const { ac, dest } = sfx
   const t = ac.currentTime
   const g = ac.createGain()
-  g.connect(ac.destination)
+  g.connect(dest)
   g.gain.setValueAtTime(0.3, t)
   g.gain.setValueAtTime(0.25, t + 0.6)
   g.gain.exponentialRampToValueAtTime(0.001, t + 1.2)
