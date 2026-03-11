@@ -8,11 +8,18 @@ import type { Enemy } from './enemyTypes'
 let lastCheckedEventTs = 0
 
 /**
+ * Sound effect callbacks passed from GameCanvas
+ */
+export interface SoundEffectCallbacks {
+  onCorrectMatch?: () => void
+}
+
+/**
  * Fixed-timestep game update function.
  * Called with a constant dt (milliseconds) each tick by the rAF loop in GameCanvas.
  * Reads Zustand state fresh at each step — do NOT cache getState() at function top.
  */
-export function update(dt: number): void {
+export function update(dt: number, soundEffects?: SoundEffectCallbacks): void {
   // -------------------------------------------------------------------
   // Step 1: Spawn enemies from the queue
   // -------------------------------------------------------------------
@@ -93,6 +100,8 @@ export function update(dt: number): void {
       const reactionMs = hitTimeMs - enemy.spawnedAtMs
       recordCorrectHit(reactionMs)
       useBoundStore.getState().damageEnemy(enemy.id, 1)
+      // Play sound effect for correct match
+      soundEffects?.onCorrectMatch?.()
     }
   }
 

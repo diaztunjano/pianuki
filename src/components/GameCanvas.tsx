@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useBoundStore } from '../stores'
 import { update } from '../game/gameLoop'
 import { midiNoteToName } from '../lib/noteUtils'
+import { useSoundEffects } from '../hooks/useSoundEffects'
 import type { Enemy } from '../game/enemyTypes'
 
 // Fixed timestep: 60 updates per second
@@ -239,6 +240,7 @@ function drawFrame(
 export function GameCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const { playCorrectMatch } = useSoundEffects()
 
   // Effect 1: ResizeObserver — keep canvas buffer size in sync with container
   useEffect(() => {
@@ -284,7 +286,7 @@ export function GameCanvas() {
       if (gamePhase === 'playing') {
         accumulator += deltaTimeMs
         while (accumulator >= TIMESTEP) {
-          update(TIMESTEP)
+          update(TIMESTEP, { onCorrectMatch: playCorrectMatch })
           accumulator -= TIMESTEP
         }
       }
