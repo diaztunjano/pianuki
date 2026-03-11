@@ -2,6 +2,7 @@ import { useBoundStore } from '../stores'
 import { isNoteMatch } from './noteMatch'
 import { recordEnemySpawned, recordCorrectHit, recordMiss, computeLevelResult } from './statsTracker'
 import type { Enemy } from './enemyTypes'
+import { playClickSound } from '../audio/soundEffects'
 
 // Module-level state for wrong-note detection
 // Tracks the timestamp of the last NoteOn event we already processed
@@ -86,13 +87,18 @@ export function update(dt: number): void {
   // Step 4: Check note matches — damage enemies that match active notes
   // -------------------------------------------------------------------
   const matchState = useBoundStore.getState()
-  const { activeNotes } = matchState
+  const { activeNotes, settings } = matchState
   for (const enemy of matchState.enemies) {
     if (enemy.state === 'alive' && isNoteMatch(enemy, activeNotes)) {
       const hitTimeMs = performance.now()
       const reactionMs = hitTimeMs - enemy.spawnedAtMs
       recordCorrectHit(reactionMs)
       useBoundStore.getState().damageEnemy(enemy.id, 1)
+
+      // Play click sound for correct match
+      if (settings.soundEffectsEnabled) {
+        playClickSound(settings.soundEffectsVolume)
+      }
     }
   }
 

@@ -56,6 +56,8 @@ export interface PersistedState {
     inputSource: 'mic' | 'midi'
     latencyOffsetMs: number
     hasSeenOnboarding: boolean
+    soundEffectsEnabled: boolean
+    soundEffectsVolume: number
   }
 }
 
@@ -469,11 +471,15 @@ interface SettingsSlice {
     inputSource: 'mic' | 'midi'
     latencyOffsetMs: number        // range -200..200, default 0
     hasSeenOnboarding: boolean     // first-run gate, default false
+    soundEffectsEnabled: boolean   // toggle for sound effects, default true
+    soundEffectsVolume: number     // range 0..1, default 0.3
   }
   setPenaltyMode: (mode: 'easy' | 'normal' | 'hard') => void
   setInputSource: (source: 'mic' | 'midi') => void
   setLatencyOffset: (ms: number) => void
   markOnboardingSeen: () => void
+  setSoundEffectsEnabled: (enabled: boolean) => void
+  setSoundEffectsVolume: (volume: number) => void
 }
 
 const createSettingsSlice: StateCreator<
@@ -487,6 +493,8 @@ const createSettingsSlice: StateCreator<
     inputSource: 'mic',
     latencyOffsetMs: 0,
     hasSeenOnboarding: false,
+    soundEffectsEnabled: true,
+    soundEffectsVolume: 0.3,
   },
 
   setPenaltyMode: (mode) =>
@@ -524,6 +532,24 @@ const createSettingsSlice: StateCreator<
       false,
       'settings/markOnboardingSeen',
     ),
+
+  setSoundEffectsEnabled: (enabled) =>
+    set(
+      (draft) => {
+        draft.settings.soundEffectsEnabled = enabled
+      },
+      false,
+      'settings/setSoundEffectsEnabled',
+    ),
+
+  setSoundEffectsVolume: (volume) =>
+    set(
+      (draft) => {
+        draft.settings.soundEffectsVolume = Math.max(0, Math.min(1, volume))
+      },
+      false,
+      'settings/setSoundEffectsVolume',
+    ),
 })
 
 // --- Bound Store ---
@@ -542,7 +568,7 @@ export const useBoundStore = create<BoundStore>()(
       {
         name: 'pianuki-progress',
         storage: createJSONStorage(() => localStorage),
-        version: 2,
+        version: 3,
         partialize: (state): PersistedState => ({
           progress: state.progress,
           settings: state.settings,
@@ -552,6 +578,10 @@ export const useBoundStore = create<BoundStore>()(
           if (version < 2) {
             state.settings.latencyOffsetMs = state.settings.latencyOffsetMs ?? 0
             state.settings.hasSeenOnboarding = state.settings.hasSeenOnboarding ?? false
+          }
+          if (version < 3) {
+            state.settings.soundEffectsEnabled = state.settings.soundEffectsEnabled ?? true
+            state.settings.soundEffectsVolume = state.settings.soundEffectsVolume ?? 0.3
           }
           return state
         },

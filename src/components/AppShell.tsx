@@ -10,6 +10,7 @@ import { MicExplainScreen } from './MicExplainScreen'
 import { useMidiInput } from '../hooks/useMidiInput'
 import { useAudioInput } from '../hooks/useAudioInput'
 import { useBoundStore } from '../stores'
+import { initSoundEffects } from '../audio/soundEffects'
 
 // --- AppShell ---
 
@@ -81,6 +82,14 @@ export function AppShell() {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
+
+  // Initialize sound effects on first user interaction.
+  // Initializes when mic is enabled (user gesture) to satisfy Web Audio API requirements.
+  useEffect(() => {
+    if (micEnabled) {
+      initSoundEffects()
+    }
+  }, [micEnabled])
 
   // Onboarding gate (AINP-04):
   // First-time users see the headphone requirement screen before anything else.
