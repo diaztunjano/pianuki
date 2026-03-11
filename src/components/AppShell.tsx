@@ -10,6 +10,7 @@ import { MicExplainScreen } from './MicExplainScreen'
 import { useMidiInput } from '../hooks/useMidiInput'
 import { useAudioInput } from '../hooks/useAudioInput'
 import { useBoundStore } from '../stores'
+import { soundManager } from '../lib/soundManager'
 
 // --- AppShell ---
 
@@ -66,6 +67,33 @@ export function AppShell() {
     }
     checkPermission()
   }, [])
+
+  // Initialize sound manager on first mount (requires user gesture)
+  // This ensures sound works for both mic and MIDI users
+  useEffect(() => {
+    // Initialize on any user click
+    const initSound = () => {
+      soundManager.initialize()
+      soundManager.resume()
+      // Remove listener after first click
+      window.removeEventListener('click', initSound)
+      window.removeEventListener('keydown', initSound)
+    }
+    window.addEventListener('click', initSound, { once: true })
+    window.addEventListener('keydown', initSound, { once: true })
+
+    return () => {
+      window.removeEventListener('click', initSound)
+      window.removeEventListener('keydown', initSound)
+    }
+  }, [])
+
+  // Also resume sound manager when mic is enabled (ensures AudioContext is active)
+  useEffect(() => {
+    if (micEnabled) {
+      soundManager.resume()
+    }
+  }, [micEnabled])
 
   // ESC key: toggle pause/resume during gameplay.
   // Uses getState() inside the handler — avoids stale closure over gamePhase
