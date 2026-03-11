@@ -5,6 +5,7 @@ import { enableMapSet } from 'immer'
 import { Enemy, EnemySpawnEntry, buildEnemy } from '../game/enemyTypes'
 import { LEVEL_CONFIGS } from '../game/waveConfig'
 import { resetStats } from '../game/statsTracker'
+import { preloadSounds } from '../lib/soundEffects'
 
 // Enable immer support for Set/Map (needed for activeNotes: Set<number>)
 enableMapSet()
@@ -184,6 +185,8 @@ const createGameSlice: StateCreator<
 
   startLevel: (levelIndex) => {
     resetStats()
+    // Preload sound effects to reduce latency
+    preloadSounds()
     set(
       (draft) => {
         const level = LEVEL_CONFIGS[levelIndex]
@@ -209,6 +212,8 @@ const createGameSlice: StateCreator<
 
   startGame: (levelIndex) => {
     resetStats()
+    // Preload sound effects to reduce latency
+    preloadSounds()
     set(
       (draft) => {
         const level = LEVEL_CONFIGS[levelIndex]
