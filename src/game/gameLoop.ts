@@ -1,6 +1,7 @@
 import { useBoundStore } from '../stores'
 import { isNoteMatch } from './noteMatch'
 import { recordEnemySpawned, recordCorrectHit, recordMiss, computeLevelResult } from './statsTracker'
+import { soundEffectsManager } from '../utils/soundEffectsManager'
 import type { Enemy } from './enemyTypes'
 
 // Module-level state for wrong-note detection
@@ -93,6 +94,8 @@ export function update(dt: number): void {
       const reactionMs = hitTimeMs - enemy.spawnedAtMs
       recordCorrectHit(reactionMs)
       useBoundStore.getState().damageEnemy(enemy.id, 1)
+      // Play click sound for correct match
+      soundEffectsManager.playClickSound()
     }
   }
 
@@ -131,6 +134,8 @@ export function update(dt: number): void {
 
   if (wrongNoteDetected) {
     useBoundStore.getState().triggerWrongNote()
+    // Play buzz sound for wrong note
+    soundEffectsManager.playBuzzSound()
   }
 
   // -------------------------------------------------------------------

@@ -9,6 +9,7 @@ import { OnboardingScreen } from './OnboardingScreen'
 import { MicExplainScreen } from './MicExplainScreen'
 import { useMidiInput } from '../hooks/useMidiInput'
 import { useAudioInput } from '../hooks/useAudioInput'
+import { useSoundEffects } from '../hooks/useSoundEffects'
 import { useBoundStore } from '../stores'
 
 // --- AppShell ---
@@ -50,6 +51,9 @@ export function AppShell() {
   // Mic: only activates when micEnabled = true (set by button click = user gesture)
   // Must run at AppShell level regardless of screen — audio needs to be active during play
   useAudioInput(micEnabled)
+
+  // Sound effects: initialize on mount for correct/incorrect match sounds
+  useSoundEffects()
 
   // Check mic permission state once on mount.
   // Safari doesn't support permissions.query for microphone — defaults to 'prompt'
