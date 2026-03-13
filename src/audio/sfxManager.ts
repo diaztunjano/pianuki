@@ -7,10 +7,15 @@
  *
  * All sounds are synthesised entirely with OscillatorNode + GainNode — no
  * external audio file dependencies.
+ *
+ * sfxEnabled and sfxVolume are read directly from the Zustand store so that
+ * the persisted settings take effect immediately on every play call without
+ * any extra wiring.
  */
 
+import { useBoundStore } from '../stores'
+
 let ctx: AudioContext | null = null
-let muted = false
 
 function getContext(): AudioContext {
   if (!ctx || ctx.state === 'closed') {
@@ -31,18 +36,17 @@ export function setContext(externalCtx: AudioContext): void {
   ctx = externalCtx
 }
 
-/** Mute / unmute all SFX without destroying the AudioContext. */
-export function setSfxMuted(value: boolean): void {
-  muted = value
-}
-
-export function isSfxMuted(): boolean {
-  return muted
-}
-
 // ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------
+
+function isEnabled(): boolean {
+  return useBoundStore.getState().settings.sfxEnabled
+}
+
+function getVolume(): number {
+  return useBoundStore.getState().settings.sfxVolume
+}
 
 /** Schedule a single oscillator burst and release it cleanly. */
 function playTone(
@@ -111,67 +115,72 @@ function playGlide(
  * Correct note hit — bright ascending chime (two short sine tones).
  */
 export function playCorrect(): void {
-  if (muted) return
+  if (!isEnabled()) return
   const ac = getContext()
   const t = ac.currentTime
-  playTone(880, 'sine', t, 0.12, 0.4, 0.005, 0.06)
-  playTone(1320, 'sine', t + 0.07, 0.12, 0.3, 0.005, 0.06)
+  const v = getVolume()
+  playTone(880, 'sine', t, 0.12, 0.4 * v, 0.005, 0.06)
+  playTone(1320, 'sine', t + 0.07, 0.12, 0.3 * v, 0.005, 0.06)
 }
 
 /**
  * Wrong note — harsh short buzz (sawtooth, slightly detuned).
  */
 export function playWrong(): void {
-  if (muted) return
+  if (!isEnabled()) return
   const ac = getContext()
   const t = ac.currentTime
-  playTone(180, 'sawtooth', t, 0.18, 0.25, 0.003, 0.12)
-  playTone(185, 'square', t, 0.18, 0.1, 0.003, 0.12)
+  const v = getVolume()
+  playTone(180, 'sawtooth', t, 0.18, 0.25 * v, 0.003, 0.12)
+  playTone(185, 'square', t, 0.18, 0.1 * v, 0.003, 0.12)
 }
 
 /**
  * Enemy defeated — short descending glide (sine).
  */
 export function playEnemyDeath(): void {
-  if (muted) return
+  if (!isEnabled()) return
   const ac = getContext()
   const t = ac.currentTime
-  playGlide(600, 200, 'sine', t, 0.2, 0.35)
+  playGlide(600, 200, 'sine', t, 0.2, 0.35 * getVolume())
 }
 
 /**
  * Wave start — ascending three-note fanfare.
  */
 export function playWaveStart(): void {
-  if (muted) return
+  if (!isEnabled()) return
   const ac = getContext()
   const t = ac.currentTime
-  playTone(523.25, 'sine', t, 0.1, 0.35)        // C5
-  playTone(659.25, 'sine', t + 0.1, 0.1, 0.35)  // E5
-  playTone(783.99, 'sine', t + 0.2, 0.18, 0.4)  // G5
+  const v = getVolume()
+  playTone(523.25, 'sine', t, 0.1, 0.35 * v)        // C5
+  playTone(659.25, 'sine', t + 0.1, 0.1, 0.35 * v)  // E5
+  playTone(783.99, 'sine', t + 0.2, 0.18, 0.4 * v)  // G5
 }
 
 /**
  * Wave cleared — triumphant upward glide followed by a chord shimmer.
  */
 export function playWaveEnd(): void {
-  if (muted) return
+  if (!isEnabled()) return
   const ac = getContext()
   const t = ac.currentTime
-  playTone(523.25, 'sine', t, 0.15, 0.3)         // C5
-  playTone(659.25, 'sine', t + 0.05, 0.15, 0.3)  // E5
-  playTone(783.99, 'sine', t + 0.1, 0.15, 0.3)   // G5
-  playTone(1046.5, 'sine', t + 0.15, 0.3, 0.35)  // C6 — held
+  const v = getVolume()
+  playTone(523.25, 'sine', t, 0.15, 0.3 * v)         // C5
+  playTone(659.25, 'sine', t + 0.05, 0.15, 0.3 * v)  // E5
+  playTone(783.99, 'sine', t + 0.1, 0.15, 0.3 * v)   // G5
+  playTone(1046.5, 'sine', t + 0.15, 0.3, 0.35 * v)  // C6 — held
 }
 
 /**
  * Game over — slow descending tones, ominous.
  */
 export function playGameOver(): void {
-  if (muted) return
+  if (!isEnabled()) return
   const ac = getContext()
   const t = ac.currentTime
-  playTone(220, 'sawtooth', t, 0.35, 0.3, 0.01, 0.2)
-  playTone(196, 'sawtooth', t + 0.3, 0.35, 0.3, 0.01, 0.2)
-  playTone(174.61, 'sawtooth', t + 0.6, 0.5, 0.35, 0.01, 0.3)
+  const v = getVolume()
+  playTone(220, 'sawtooth', t, 0.35, 0.3 * v, 0.01, 0.2)
+  playTone(196, 'sawtooth', t + 0.3, 0.35, 0.3 * v, 0.01, 0.2)
+  playTone(174.61, 'sawtooth', t + 0.6, 0.5, 0.35 * v, 0.01, 0.3)
 }
