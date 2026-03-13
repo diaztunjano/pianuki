@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SFX Manager Test</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+    button {
+      margin: 10px 5px;
+      padding: 12px 24px;
+      font-size: 16px;
+      cursor: pointer;
+      border: 2px solid #333;
+      background: #fff;
+      border-radius: 4px;
+    }
+    button:hover {
+      background: #f0f0f0;
+    }
+    button:active {
+      background: #e0e0e0;
+    }
+    .section {
+      margin: 20px 0;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+    h2 {
+      margin-top: 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>SFX Manager Test</h1>
+
+  <div class="section">
+    <h2>Individual Sound Effects</h2>
+    <button id="btn-correct">Play Correct</button>
+    <button id="btn-wrong">Play Wrong</button>
+    <button id="btn-enemy-death">Play Enemy Death</button>
+    <button id="btn-wave-start">Play Wave Start</button>
+    <button id="btn-wave-end">Play Wave End</button>
+    <button id="btn-game-over">Play Game Over</button>
+  </div>
+
+  <div class="section">
+    <h2>All Sounds Sequence</h2>
+    <button id="btn-all">Play All (Sequential)</button>
+  </div>
+
+  <p><small>Note: First click on any button will initialize the AudioContext (browser autoplay policy).</small></p>
+
+  <script type="module">
+    import {
+      playCorrect,
+      playWrong,
+      playEnemyDeath,
+      playWaveStart,
+      playWaveEnd,
+      playGameOver
+    } from './sfxManager.js'
+
+    document.getElementById('btn-correct').addEventListener('click', playCorrect)
+    document.getElementById('btn-wrong').addEventListener('click', playWrong)
+    document.getElementById('btn-enemy-death').addEventListener('click', playEnemyDeath)
+    document.getElementById('btn-wave-start').addEventListener('click', playWaveStart)
+    document.getElementById('btn-wave-end').addEventListener('click', playWaveEnd)
+    document.getElementById('btn-game-over').addEventListener('click', playGameOver)
+
+    document.getElementById('btn-all').addEventListener('click', () => {
+      playCorrect()
+      setTimeout(playWrong, 500)
+      setTimeout(playEnemyDeath, 1000)
+      setTimeout(playWaveStart, 1500)
+      setTimeout(playWaveEnd, 2000)
+      setTimeout(playGameOver, 3000)
+    })
+  </script>
+</body>
+</html>
