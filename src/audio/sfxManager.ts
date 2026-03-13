@@ -9,6 +9,7 @@
  * - Lazy AudioContext creation (respects user gesture requirement)
  * - Can reuse existing AudioContext from mic input if available
  * - All methods are fire-and-forget (no cleanup required by caller)
+ * - Respects sfxEnabled and sfxVolume settings from store
  */
 
 // --- Types ---
@@ -21,9 +22,15 @@ type SoundEffect =
   | 'waveEnd'
   | 'gameOver'
 
+interface SfxSettings {
+  enabled: boolean
+  volume: number  // 0..1
+}
+
 // --- Singleton State ---
 
 let audioContext: AudioContext | null = null
+let getSettings: (() => SfxSettings) | null = null
 
 // --- AudioContext Management ---
 
@@ -47,7 +54,26 @@ export function setSharedAudioContext(ctx: AudioContext): void {
   audioContext = ctx
 }
 
+/**
+ * Sets the settings getter function that will be called before playing
+ * each sound effect to check if SFX are enabled and get the volume.
+ * Expected to be called once during app initialization with a Zustand selector.
+ */
+export function setSfxSettingsGetter(getter: () => SfxSettings): void {
+  getSettings = getter
+}
+
 // --- Sound Synthesis Helpers ---
+
+/**
+ * Checks if SFX are enabled and returns the volume multiplier.
+ * Returns 0 if SFX are disabled, otherwise returns the user's volume setting.
+ */
+function getVolumeMultiplier(): number {
+  if (!getSettings) return 1 // No settings configured, play at full volume
+  const settings = getSettings()
+  return settings.enabled ? settings.volume : 0
+}
 
 /**
  * Creates a gain envelope with attack-decay-sustain-release shape.
@@ -85,6 +111,9 @@ function playTone(
   peakGain = 0.3,
   sustainGain = 0.2,
 ): void {
+  const volumeMultiplier = getVolumeMultiplier()
+  if (volumeMultiplier === 0) return // SFX disabled or muted
+
   const ctx = getAudioContext()
   const now = ctx.currentTime
 
@@ -93,7 +122,16 @@ function playTone(
   osc.frequency.setValueAtTime(frequency, now)
 
   const gain = ctx.createGain()
-  applyEnvelope(gain, now, attack, decay, sustain, release, peakGain, sustainGain)
+  applyEnvelope(
+    gain,
+    now,
+    attack,
+    decay,
+    sustain,
+    release,
+    peakGain * volumeMultiplier,
+    sustainGain * volumeMultiplier,
+  )
 
   osc.connect(gain)
   gain.connect(ctx.destination)
@@ -116,6 +154,9 @@ function playChord(
   peakGain = 0.2,
   sustainGain = 0.15,
 ): void {
+  const volumeMultiplier = getVolumeMultiplier()
+  if (volumeMultiplier === 0) return // SFX disabled or muted
+
   for (const freq of frequencies) {
     playTone(freq, type, duration, attack, decay, sustain, release, peakGain, sustainGain)
   }
@@ -128,6 +169,9 @@ function playChord(
  * C5 major triad (523.25, 659.25, 783.99 Hz)
  */
 export function playCorrect(): void {
+  const volumeMultiplier = getVolumeMultiplier()
+  if (volumeMultiplier === 0) return // SFX disabled or muted
+
   const ctx = getAudioContext()
   const now = ctx.currentTime
 
@@ -143,7 +187,7 @@ export function playCorrect(): void {
     const startTime = now + i * stagger
     const g = gain.gain
     g.setValueAtTime(0, startTime)
-    g.linearRampToValueAtTime(0.25, startTime + 0.01)
+    g.linearRampToValueAtTime(0.25 * volumeMultiplier, startTime + 0.01)
     g.exponentialRampToValueAtTime(0.001, startTime + 0.3)
 
     osc.connect(gain)
@@ -158,6 +202,9 @@ export function playCorrect(): void {
  * Wrong note: dissonant buzz (low sawtooth with rapid vibrato)
  */
 export function playWrong(): void {
+  const volumeMultiplier = getVolumeMultiplier()
+  if (volumeMultiplier === 0) return // SFX disabled or muted
+
   const ctx = getAudioContext()
   const now = ctx.currentTime
 
@@ -180,7 +227,7 @@ export function playWrong(): void {
   const gain = ctx.createGain()
   const g = gain.gain
   g.setValueAtTime(0, now)
-  g.linearRampToValueAtTime(0.2, now + 0.02)
+  g.linearRampToValueAtTime(0.2 * volumeMultiplier, now + 0.02)
   g.linearRampToValueAtTime(0, now + 0.15)
 
   osc.connect(gain)
@@ -196,6 +243,9 @@ export function playWrong(): void {
  * Enemy death: descending glitch (square wave pitch drop)
  */
 export function playEnemyDeath(): void {
+  const volumeMultiplier = getVolumeMultiplier()
+  if (volumeMultiplier === 0) return // SFX disabled or muted
+
   const ctx = getAudioContext()
   const now = ctx.currentTime
 
@@ -210,7 +260,7 @@ export function playEnemyDeath(): void {
   const gain = ctx.createGain()
   const g = gain.gain
   g.setValueAtTime(0, now)
-  g.linearRampToValueAtTime(0.15, now + 0.01)
+  g.linearRampToValueAtTime(0.15 * volumeMultiplier, now + 0.01)
   g.linearRampToValueAtTime(0, now + 0.2)
 
   osc.connect(gain)
@@ -224,6 +274,9 @@ export function playEnemyDeath(): void {
  * Wave start: rising alert (ascending triangle wave)
  */
 export function playWaveStart(): void {
+  const volumeMultiplier = getVolumeMultiplier()
+  if (volumeMultiplier === 0) return // SFX disabled or muted
+
   const ctx = getAudioContext()
   const now = ctx.currentTime
 
@@ -238,8 +291,8 @@ export function playWaveStart(): void {
   const gain = ctx.createGain()
   const g = gain.gain
   g.setValueAtTime(0, now)
-  g.linearRampToValueAtTime(0.2, now + 0.02)
-  g.setValueAtTime(0.2, now + 0.28)
+  g.linearRampToValueAtTime(0.2 * volumeMultiplier, now + 0.02)
+  g.setValueAtTime(0.2 * volumeMultiplier, now + 0.28)
   g.linearRampToValueAtTime(0, now + 0.3)
 
   osc.connect(gain)
@@ -271,6 +324,9 @@ export function playWaveEnd(): void {
  * Game over: descending minor chord (somber)
  */
 export function playGameOver(): void {
+  const volumeMultiplier = getVolumeMultiplier()
+  if (volumeMultiplier === 0) return // SFX disabled or muted
+
   const ctx = getAudioContext()
   const now = ctx.currentTime
 
@@ -285,8 +341,8 @@ export function playGameOver(): void {
     const gain = ctx.createGain()
     const g = gain.gain
     g.setValueAtTime(0, now)
-    g.linearRampToValueAtTime(0.15, now + 0.05)
-    g.setValueAtTime(0.15, now + 0.5)
+    g.linearRampToValueAtTime(0.15 * volumeMultiplier, now + 0.05)
+    g.setValueAtTime(0.15 * volumeMultiplier, now + 0.5)
     g.linearRampToValueAtTime(0, now + 1.2)
 
     osc.connect(gain)
