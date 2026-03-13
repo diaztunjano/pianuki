@@ -5,6 +5,7 @@ import { enableMapSet } from 'immer'
 import { Enemy, EnemySpawnEntry, buildEnemy } from '../game/enemyTypes'
 import { LEVEL_CONFIGS } from '../game/waveConfig'
 import { resetStats } from '../game/statsTracker'
+import { playEnemyDeath, playWaveStart } from '../audio/sfxManager'
 
 // Enable immer support for Set/Map (needed for activeNotes: Set<number>)
 enableMapSet()
@@ -186,6 +187,7 @@ const createGameSlice: StateCreator<
 
   startLevel: (levelIndex) => {
     resetStats()
+    playWaveStart() // Play wave start sound
     set(
       (draft) => {
         const level = LEVEL_CONFIGS[levelIndex]
@@ -211,6 +213,7 @@ const createGameSlice: StateCreator<
 
   startGame: (levelIndex) => {
     resetStats()
+    playWaveStart() // Play wave start sound
     set(
       (draft) => {
         const level = LEVEL_CONFIGS[levelIndex]
@@ -268,6 +271,7 @@ const createGameSlice: StateCreator<
           draft.spawnIntervalMs = nextWave.spawnIntervalMs
           draft.spawnAccumulator = 0
           draft.gamePhase = 'playing'
+          playWaveStart() // Play wave start sound
         } else {
           // All waves complete — level complete
           draft.gamePhase = 'level-complete'
@@ -295,6 +299,7 @@ const createGameSlice: StateCreator<
         if (enemy.hp <= 0) {
           enemy.state = 'dying'
           enemy.defeatedFrames = 12
+          playEnemyDeath() // Play enemy death sound
         }
       },
       false,
