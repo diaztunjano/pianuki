@@ -88,15 +88,15 @@ export function update(dt: number): void {
   // -------------------------------------------------------------------
   const matchState = useBoundStore.getState()
   const { activeNotes } = matchState
-  for (const enemy of matchState.enemies) {
-    if (enemy.state === 'alive' && isNoteMatch(enemy, activeNotes)) {
+  const matchedEnemies = matchState.enemies.filter(
+    (e) => e.state === 'alive' && isNoteMatch(e, activeNotes),
+  )
+  if (matchedEnemies.length > 0) {
+    playCorrect()
+    for (const enemy of matchedEnemies) {
       const hitTimeMs = performance.now()
-      const reactionMs = hitTimeMs - enemy.spawnedAtMs
-      recordCorrectHit(reactionMs)
-      playCorrect()
-      if (enemy.hp <= 1) {
-        playEnemyDeath()
-      }
+      recordCorrectHit(hitTimeMs - enemy.spawnedAtMs)
+      if (enemy.hp <= 1) playEnemyDeath()
       useBoundStore.getState().damageEnemy(enemy.id, 1)
     }
   }
@@ -125,7 +125,7 @@ export function update(dt: number): void {
             (enemy.targetNotes[0] === event.note ||
               enemy.targetNotes[1] === event.note)),
       )
-      if (!matchesAnyEnemy && aliveEnemies.length > 0) {
+      if (!matchesAnyEnemy && aliveEnemies.length > 0 && penaltyMode !== 'easy') {
         wrongNoteDetected = true
         recordMiss(event.noteName)
       }
@@ -134,7 +134,7 @@ export function update(dt: number): void {
 
   lastCheckedEventTs = latestEventTs
 
-  if (wrongNoteDetected) {
+  if (wrongNoteDetected && penaltyMode !== 'easy') {
     playWrong()
     useBoundStore.getState().triggerWrongNote()
   }
