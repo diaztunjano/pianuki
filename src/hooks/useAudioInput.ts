@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { PitchDetector } from 'pitchy'
 import { useBoundStore } from '../stores/audioStore'
 import { frequencyToMidiNote, midiNoteToName } from '../lib/noteUtils'
+import { setContext } from '../audio/sfxManager'
 
 // --- Constants ---
 
@@ -58,6 +59,8 @@ export function useAudioInput(enabled = true): void {
 
         // Create AudioContext inside the success path (post-user-gesture)
         audioContext = new AudioContext()
+        // Share the mic's AudioContext with sfxManager to avoid a second audio graph
+        setContext(audioContext)
 
         const analyser = audioContext.createAnalyser()
         analyser.fftSize = FFT_SIZE
