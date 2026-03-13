@@ -23,7 +23,9 @@ function getContext(): AudioContext {
   }
   // Resume if suspended (can happen after a period of inactivity)
   if (ctx.state === 'suspended') {
-    void ctx.resume()
+    ctx.resume().catch((err) => {
+      console.warn('[sfxManager] AudioContext resume failed:', err)
+    })
   }
   return ctx
 }
@@ -58,6 +60,7 @@ function playTone(
   attackTime = 0.005,
   releaseTime = 0.05,
 ): void {
+  if (peakGain <= 0) return
   const ac = getContext()
 
   const osc = ac.createOscillator()
@@ -87,6 +90,7 @@ function playGlide(
   duration: number,
   peakGain: number,
 ): void {
+  if (peakGain <= 0) return
   const ac = getContext()
 
   const osc = ac.createOscillator()
