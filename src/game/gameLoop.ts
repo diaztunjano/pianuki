@@ -8,6 +8,10 @@ import { playCorrect, playWrong, playEnemyDeath } from '../audio/sfxManager'
 // Tracks the timestamp of the last NoteOn event we already processed
 let lastCheckedEventTs = 0
 
+// Cooldown to prevent playCorrect() from firing on every tick while a note is held
+let lastCorrectChimeTs = 0
+const CORRECT_CHIME_COOLDOWN_MS = 200
+
 /**
  * Fixed-timestep game update function.
  * Called with a constant dt (milliseconds) each tick by the rAF loop in GameCanvas.
@@ -100,7 +104,13 @@ export function update(dt: number): void {
       if (willDie) playEnemyDeath()
     }
   }
-  if (anyHit) playCorrect()
+  if (anyHit) {
+    const now = performance.now()
+    if (now - lastCorrectChimeTs >= CORRECT_CHIME_COOLDOWN_MS) {
+      playCorrect()
+      lastCorrectChimeTs = now
+    }
+  }
 
   // -------------------------------------------------------------------
   // Step 5: Wrong note detection — only triggers on new NoteOn events
