@@ -137,7 +137,7 @@ export function update(dt: number): void {
 
   if (wrongNoteDetected) {
     useBoundStore.getState().triggerWrongNote()
-    playWrong()
+    if (penaltyMode !== 'easy') playWrong()
   }
 
   // -------------------------------------------------------------------
