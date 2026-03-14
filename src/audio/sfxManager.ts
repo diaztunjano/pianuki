@@ -14,6 +14,7 @@
 
 let _ctx: AudioContext | null = null
 let _muted = false
+let _volume = 1.0
 
 /** Lazily obtain (or create) the shared AudioContext. */
 function getContext(): AudioContext {
@@ -37,6 +38,16 @@ export function setSfxMuted(muted: boolean): void {
 /** Returns true if SFX are currently muted. */
 export function isSfxMuted(): boolean {
   return _muted
+}
+
+/** Set the master SFX volume (0–1). Clamped to valid range. */
+export function setSfxVolume(volume: number): void {
+  _volume = Math.max(0, Math.min(1, volume))
+}
+
+/** Returns the current master SFX volume (0–1). */
+export function getSfxVolume(): number {
+  return _volume
 }
 
 // --- Low-level helpers ---
@@ -73,11 +84,12 @@ function scheduleOscillator(
     osc.frequency.linearRampToValueAtTime(endFreq, startTime + duration)
   }
 
+  const scaledPeak = peakGain * _volume
   gain.gain.setValueAtTime(0, startTime)
-  gain.gain.linearRampToValueAtTime(peakGain, startTime + attackTime)
+  gain.gain.linearRampToValueAtTime(scaledPeak, startTime + attackTime)
   // Hold briefly then decay
   const decayStart = startTime + attackTime
-  gain.gain.setValueAtTime(peakGain, decayStart)
+  gain.gain.setValueAtTime(scaledPeak, decayStart)
   gain.gain.linearRampToValueAtTime(0, decayStart + decayTime)
 
   osc.connect(gain)

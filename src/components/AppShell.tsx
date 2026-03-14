@@ -10,6 +10,7 @@ import { MicExplainScreen } from './MicExplainScreen'
 import { useMidiInput } from '../hooks/useMidiInput'
 import { useAudioInput } from '../hooks/useAudioInput'
 import { useBoundStore } from '../stores'
+import { setSfxMuted, setSfxVolume } from '../audio/sfxManager'
 
 // --- AppShell ---
 
@@ -33,6 +34,8 @@ export function AppShell() {
   const [micEnabled, setMicEnabled] = useState(false)
   const currentScreen = useBoundStore((s) => s.currentScreen)
   const hasSeenOnboarding = useBoundStore((s) => s.settings.hasSeenOnboarding)
+  const sfxEnabled = useBoundStore((s) => s.settings.sfxEnabled)
+  const sfxVolume = useBoundStore((s) => s.settings.sfxVolume)
 
   // Mic permission state — checked once on mount to determine whether to show
   // the mic explain screen (permission 'prompt') or skip directly to the enable button
@@ -50,6 +53,16 @@ export function AppShell() {
   // Mic: only activates when micEnabled = true (set by button click = user gesture)
   // Must run at AppShell level regardless of screen — audio needs to be active during play
   useAudioInput(micEnabled)
+
+  // Sync SFX settings from store into sfxManager whenever they change.
+  // Runs on mount (initialises from persisted state) and on every change.
+  useEffect(() => {
+    setSfxMuted(!sfxEnabled)
+  }, [sfxEnabled])
+
+  useEffect(() => {
+    setSfxVolume(sfxVolume)
+  }, [sfxVolume])
 
   // Check mic permission state once on mount.
   // Safari doesn't support permissions.query for microphone — defaults to 'prompt'

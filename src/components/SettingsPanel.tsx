@@ -17,9 +17,13 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
   const penaltyMode = useBoundStore((s) => s.settings.penaltyMode)
   const inputSource = useBoundStore((s) => s.settings.inputSource)
   const latencyOffsetMs = useBoundStore((s) => s.settings.latencyOffsetMs)
+  const sfxEnabled = useBoundStore((s) => s.settings.sfxEnabled)
+  const sfxVolume = useBoundStore((s) => s.settings.sfxVolume)
   const setPenaltyMode = useBoundStore((s) => s.setPenaltyMode)
   const setInputSource = useBoundStore((s) => s.setInputSource)
   const setLatencyOffset = useBoundStore((s) => s.setLatencyOffset)
+  const setSfxEnabled = useBoundStore((s) => s.setSfxEnabled)
+  const setSfxVolume = useBoundStore((s) => s.setSfxVolume)
 
   const cardClass =
     'flex flex-col gap-8 rounded-2xl bg-gray-900/90 border border-white/10 px-12 py-10 text-white shadow-2xl backdrop-blur-sm w-full max-w-md'
@@ -122,6 +126,37 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
           </div>
           <p className="text-xs text-white/40">
             Increase if notes register late; decrease if they register early.
+          </p>
+        </div>
+
+        {/* Sound Effects */}
+        <div className="flex flex-col gap-3">
+          <label className="text-sm font-semibold text-white/70 tracking-wider uppercase">
+            Sound Effects
+          </label>
+          <div className="flex items-center gap-3">
+            <button
+              className={sfxEnabled ? activeBtnClass : inactiveBtnClass}
+              onClick={() => setSfxEnabled(!sfxEnabled)}
+            >
+              {sfxEnabled ? 'On' : 'Off'}
+            </button>
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.05}
+              value={sfxVolume}
+              disabled={!sfxEnabled}
+              onChange={(e) => setSfxVolume(Number(e.target.value))}
+              className="flex-1 accent-white cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+            />
+            <span className="text-sm text-white/70 w-10 text-right font-mono">
+              {Math.round(sfxVolume * 100)}%
+            </span>
+          </div>
+          <p className="text-xs text-white/40">
+            Mutes game sounds without affecting mic input.
           </p>
         </div>
 
