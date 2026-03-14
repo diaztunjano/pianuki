@@ -56,6 +56,8 @@ export interface PersistedState {
     inputSource: 'mic' | 'midi'
     latencyOffsetMs: number
     hasSeenOnboarding: boolean
+    sfxEnabled: boolean
+    sfxVolume: number
   }
 }
 
@@ -469,11 +471,15 @@ interface SettingsSlice {
     inputSource: 'mic' | 'midi'
     latencyOffsetMs: number        // range -200..200, default 0
     hasSeenOnboarding: boolean     // first-run gate, default false
+    sfxEnabled: boolean            // whether game sound effects are audible
+    sfxVolume: number              // 0..1, independent of mic input
   }
   setPenaltyMode: (mode: 'easy' | 'normal' | 'hard') => void
   setInputSource: (source: 'mic' | 'midi') => void
   setLatencyOffset: (ms: number) => void
   markOnboardingSeen: () => void
+  setSfxEnabled: (enabled: boolean) => void
+  setSfxVolume: (volume: number) => void
 }
 
 const createSettingsSlice: StateCreator<
@@ -487,6 +493,8 @@ const createSettingsSlice: StateCreator<
     inputSource: 'mic',
     latencyOffsetMs: 0,
     hasSeenOnboarding: false,
+    sfxEnabled: true,
+    sfxVolume: 1.0,
   },
 
   setPenaltyMode: (mode) =>
@@ -524,6 +532,24 @@ const createSettingsSlice: StateCreator<
       false,
       'settings/markOnboardingSeen',
     ),
+
+  setSfxEnabled: (enabled) =>
+    set(
+      (draft) => {
+        draft.settings.sfxEnabled = enabled
+      },
+      false,
+      'settings/setSfxEnabled',
+    ),
+
+  setSfxVolume: (volume) =>
+    set(
+      (draft) => {
+        draft.settings.sfxVolume = volume
+      },
+      false,
+      'settings/setSfxVolume',
+    ),
 })
 
 // --- Bound Store ---
@@ -542,7 +568,7 @@ export const useBoundStore = create<BoundStore>()(
       {
         name: 'pianuki-progress',
         storage: createJSONStorage(() => localStorage),
-        version: 2,
+        version: 3,
         partialize: (state): PersistedState => ({
           progress: state.progress,
           settings: state.settings,
@@ -552,6 +578,10 @@ export const useBoundStore = create<BoundStore>()(
           if (version < 2) {
             state.settings.latencyOffsetMs = state.settings.latencyOffsetMs ?? 0
             state.settings.hasSeenOnboarding = state.settings.hasSeenOnboarding ?? false
+          }
+          if (version < 3) {
+            state.settings.sfxEnabled = state.settings.sfxEnabled ?? true
+            state.settings.sfxVolume = state.settings.sfxVolume ?? 1.0
           }
           return state
         },

@@ -13,9 +13,20 @@
  *   Created on first play call (satisfies browser user-gesture requirement).
  *   Call setSharedAudioContext() to reuse an existing context (e.g. from mic input)
  *   before the first play call to avoid creating a second AudioContext.
+ *
+ * SFX settings (sfxEnabled, sfxVolume) are read from the Zustand store at
+ * call time via getState(), so no subscription or React context is needed.
  */
 
+import { useBoundStore } from '../stores'
+
 let ctx: AudioContext | null = null
+
+/** Read current SFX enabled flag and volume from the store without subscribing. */
+function getSfxSettings(): { enabled: boolean; volume: number } {
+  const { sfxEnabled, sfxVolume } = useBoundStore.getState().settings
+  return { enabled: sfxEnabled, volume: sfxVolume }
+}
 
 /**
  * Returns the singleton AudioContext, creating it lazily if needed.
@@ -54,6 +65,8 @@ interface ToneParams {
   decayTime: number
   /** Schedule offset from context.currentTime (seconds, default 0) */
   startOffset?: number
+  /** Volume multiplier applied to gainPeak (default 1) */
+  volumeMultiplier?: number
 }
 
 function playTone({
@@ -63,9 +76,11 @@ function playTone({
   attackTime,
   decayTime,
   startOffset = 0,
+  volumeMultiplier = 1,
 }: ToneParams): void {
   const context = getContext()
   const t = context.currentTime + startOffset
+  const scaledPeak = gainPeak * volumeMultiplier
 
   const osc = context.createOscillator()
   const gain = context.createGain()
@@ -74,7 +89,7 @@ function playTone({
   osc.frequency.setValueAtTime(frequency, t)
 
   gain.gain.setValueAtTime(0, t)
-  gain.gain.linearRampToValueAtTime(gainPeak, t + attackTime)
+  gain.gain.linearRampToValueAtTime(scaledPeak, t + attackTime)
   gain.gain.exponentialRampToValueAtTime(0.0001, t + attackTime + decayTime)
 
   osc.connect(gain)
@@ -91,15 +106,19 @@ function playTone({
  * Pleasant two-tone chime — played when the user hits the correct note.
  */
 export function playCorrect(): void {
+  const { enabled, volume } = getSfxSettings()
+  if (!enabled) return
   // C6 + E6 — bright, rewarding chime
-  playTone({ type: 'sine', frequency: 1046.5, gainPeak: 0.3, attackTime: 0.005, decayTime: 0.4 })
-  playTone({ type: 'sine', frequency: 1318.5, gainPeak: 0.2, attackTime: 0.005, decayTime: 0.35, startOffset: 0.03 })
+  playTone({ type: 'sine', frequency: 1046.5, gainPeak: 0.3, attackTime: 0.005, decayTime: 0.4, volumeMultiplier: volume })
+  playTone({ type: 'sine', frequency: 1318.5, gainPeak: 0.2, attackTime: 0.005, decayTime: 0.35, startOffset: 0.03, volumeMultiplier: volume })
 }
 
 /**
  * Dissonant downward buzz — played when the user plays a wrong note.
  */
 export function playWrong(): void {
+  const { enabled, volume } = getSfxSettings()
+  if (!enabled) return
   const context = getContext()
   const t = context.currentTime
 
@@ -110,7 +129,7 @@ export function playWrong(): void {
   osc.frequency.setValueAtTime(120, t)
   osc.frequency.exponentialRampToValueAtTime(60, t + 0.2)
 
-  gain.gain.setValueAtTime(0.4, t)
+  gain.gain.setValueAtTime(0.4 * volume, t)
   gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.25)
 
   osc.connect(gain)
@@ -124,6 +143,8 @@ export function playWrong(): void {
  * Short downward sweep — played when an enemy is defeated.
  */
 export function playEnemyDeath(): void {
+  const { enabled, volume } = getSfxSettings()
+  if (!enabled) return
   const context = getContext()
   const t = context.currentTime
 
@@ -134,7 +155,7 @@ export function playEnemyDeath(): void {
   osc.frequency.setValueAtTime(400, t)
   osc.frequency.exponentialRampToValueAtTime(80, t + 0.15)
 
-  gain.gain.setValueAtTime(0.25, t)
+  gain.gain.setValueAtTime(0.25 * volume, t)
   gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.2)
 
   osc.connect(gain)
@@ -148,6 +169,8 @@ export function playEnemyDeath(): void {
  * Rising three-note arpeggio — played at the start of a new wave.
  */
 export function playWaveStart(): void {
+  const { enabled, volume } = getSfxSettings()
+  if (!enabled) return
   // C4 → E4 → G4
   const notes = [261.63, 329.63, 392.0]
   notes.forEach((frequency, i) => {
@@ -158,6 +181,7 @@ export function playWaveStart(): void {
       attackTime: 0.02,
       decayTime: 0.18,
       startOffset: i * 0.1,
+      volumeMultiplier: volume,
     })
   })
 }
@@ -166,6 +190,8 @@ export function playWaveStart(): void {
  * Ascending four-note fanfare — played when all enemies in a wave are cleared.
  */
 export function playWaveEnd(): void {
+  const { enabled, volume } = getSfxSettings()
+  if (!enabled) return
   // G4 → C5 → E5 → G5
   const notes = [392.0, 523.25, 659.25, 783.99]
   notes.forEach((frequency, i) => {
@@ -176,6 +202,7 @@ export function playWaveEnd(): void {
       attackTime: 0.02,
       decayTime: 0.4,
       startOffset: i * 0.08,
+      volumeMultiplier: volume,
     })
   })
 }
@@ -184,6 +211,8 @@ export function playWaveEnd(): void {
  * Dramatic descending minor arpeggio with low rumble — played on game over.
  */
 export function playGameOver(): void {
+  const { enabled, volume } = getSfxSettings()
+  if (!enabled) return
   // C4 → A3 → F3 → C3 descending
   const notes = [261.63, 220.0, 174.61, 130.81]
   notes.forEach((frequency, i) => {
@@ -194,6 +223,7 @@ export function playGameOver(): void {
       attackTime: 0.03,
       decayTime: 0.5,
       startOffset: i * 0.18,
+      volumeMultiplier: volume,
     })
   })
 
@@ -209,7 +239,7 @@ export function playGameOver(): void {
   osc.frequency.exponentialRampToValueAtTime(40, t + 1.0)
 
   gain.gain.setValueAtTime(0, t)
-  gain.gain.linearRampToValueAtTime(0.15, t + 0.2)
+  gain.gain.linearRampToValueAtTime(0.15 * volume, t + 0.2)
   gain.gain.exponentialRampToValueAtTime(0.0001, t + 1.2)
 
   osc.connect(gain)
