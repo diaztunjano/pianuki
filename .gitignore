@@ -16,6 +16,9 @@ dist-ssr
 .env.local
 .env.*.local
 
+# Test artifacts
+TOKEN_TEST.md
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
