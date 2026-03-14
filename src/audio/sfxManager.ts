@@ -22,6 +22,9 @@ import { useBoundStore } from '../stores'
 
 let ctx: AudioContext | null = null
 
+/** Seconds added to all scheduled times so nodes land safely after context resumes. */
+const SAFETY_OFFSET = 0.05
+
 /** Read current SFX enabled flag and volume from the store without subscribing. */
 function getSfxSettings(): { enabled: boolean; volume: number } {
   const { sfxEnabled, sfxVolume } = useBoundStore.getState().settings
@@ -39,6 +42,17 @@ function getContext(): AudioContext {
   if (ctx.state === 'suspended') {
     void ctx.resume()
   }
+  return ctx
+}
+
+/**
+ * Ensures the AudioContext is created and fully running.
+ * Await this before scheduling nodes to avoid the suspended-context race where
+ * currentTime is frozen and all nodes fire at time 0 on resume.
+ */
+export async function ensureRunning(): Promise<AudioContext> {
+  if (!ctx || ctx.state === 'closed') ctx = new AudioContext()
+  if (ctx.state === 'suspended') await ctx.resume()
   return ctx
 }
 
@@ -79,8 +93,10 @@ function playTone({
   volumeMultiplier = 1,
 }: ToneParams): void {
   const context = getContext()
-  const t = context.currentTime + startOffset
   const scaledPeak = gainPeak * volumeMultiplier
+  if (scaledPeak <= 0) return  // guard: exponential ramp from 0 throws InvalidStateError
+  // SAFETY_OFFSET ensures scheduled nodes land after the context resumes
+  const t = context.currentTime + SAFETY_OFFSET + startOffset
 
   const osc = context.createOscillator()
   const gain = context.createGain()
@@ -120,7 +136,9 @@ export function playWrong(): void {
   const { enabled, volume } = getSfxSettings()
   if (!enabled) return
   const context = getContext()
-  const t = context.currentTime
+  // Clamp to a small positive floor so exponential ramp never starts from zero
+  const vol = Math.max(volume, 0.001)
+  const t = context.currentTime + SAFETY_OFFSET
 
   const osc = context.createOscillator()
   const gain = context.createGain()
@@ -129,7 +147,9 @@ export function playWrong(): void {
   osc.frequency.setValueAtTime(120, t)
   osc.frequency.exponentialRampToValueAtTime(60, t + 0.2)
 
-  gain.gain.setValueAtTime(0.4 * volume, t)
+  // Short attack ramp to avoid click/pop at note onset
+  gain.gain.setValueAtTime(0, t)
+  gain.gain.linearRampToValueAtTime(0.4 * vol, t + 0.005)
   gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.25)
 
   osc.connect(gain)
@@ -146,7 +166,9 @@ export function playEnemyDeath(): void {
   const { enabled, volume } = getSfxSettings()
   if (!enabled) return
   const context = getContext()
-  const t = context.currentTime
+  // Clamp to a small positive floor so exponential ramp never starts from zero
+  const vol = Math.max(volume, 0.001)
+  const t = context.currentTime + SAFETY_OFFSET
 
   const osc = context.createOscillator()
   const gain = context.createGain()
@@ -155,7 +177,9 @@ export function playEnemyDeath(): void {
   osc.frequency.setValueAtTime(400, t)
   osc.frequency.exponentialRampToValueAtTime(80, t + 0.15)
 
-  gain.gain.setValueAtTime(0.25 * volume, t)
+  // Short attack ramp to avoid click/pop at note onset
+  gain.gain.setValueAtTime(0, t)
+  gain.gain.linearRampToValueAtTime(0.25 * vol, t + 0.005)
   gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.2)
 
   osc.connect(gain)
@@ -229,7 +253,7 @@ export function playGameOver(): void {
 
   // Low rumble underneath the descending melody
   const context = getContext()
-  const t = context.currentTime
+  const t = context.currentTime + SAFETY_OFFSET
 
   const osc = context.createOscillator()
   const gain = context.createGain()
