@@ -10,6 +10,7 @@
 
 let ctx: AudioContext | null = null
 let muted = false
+let volume = 1
 
 // --- Context management ---
 
@@ -40,6 +41,10 @@ export function setSfxMuted(value: boolean): void {
 
 export function isSfxMuted(): boolean {
   return muted
+}
+
+export function setSfxVolume(value: number): void {
+  volume = Math.max(0, Math.min(1, value))
 }
 
 // --- Internal synthesis helper ---
@@ -75,8 +80,9 @@ function scheduleOscillator(ac: AudioContext, params: OscillatorParams): void {
   osc.type = type
   osc.frequency.setValueAtTime(frequency, startTime)
 
+  const scaledPeak = gainPeak * volume
   gain.gain.setValueAtTime(0, startTime)
-  gain.gain.linearRampToValueAtTime(gainPeak, startTime + attackTime)
+  gain.gain.linearRampToValueAtTime(scaledPeak, startTime + attackTime)
   // exponentialRamp requires a positive non-zero target value
   gain.gain.exponentialRampToValueAtTime(0.0001, startTime + decayTime)
 
@@ -128,7 +134,7 @@ export function playEnemyDeath(): void {
   osc.frequency.setValueAtTime(440, t)
   osc.frequency.exponentialRampToValueAtTime(55, t + 0.2)
 
-  gain.gain.setValueAtTime(0.2, t)
+  gain.gain.setValueAtTime(0.2 * volume, t)
   gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.2)
 
   osc.connect(gain)

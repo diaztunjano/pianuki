@@ -10,6 +10,7 @@ import { MicExplainScreen } from './MicExplainScreen'
 import { useMidiInput } from '../hooks/useMidiInput'
 import { useAudioInput } from '../hooks/useAudioInput'
 import { useBoundStore } from '../stores'
+import { setSfxMuted, setSfxVolume } from '../audio/sfxManager'
 
 // --- AppShell ---
 
@@ -33,6 +34,8 @@ export function AppShell() {
   const [micEnabled, setMicEnabled] = useState(false)
   const currentScreen = useBoundStore((s) => s.currentScreen)
   const hasSeenOnboarding = useBoundStore((s) => s.settings.hasSeenOnboarding)
+  const sfxEnabled = useBoundStore((s) => s.settings.sfxEnabled)
+  const sfxVolume = useBoundStore((s) => s.settings.sfxVolume)
 
   // Mic permission state — checked once on mount to determine whether to show
   // the mic explain screen (permission 'prompt') or skip directly to the enable button
@@ -66,6 +69,15 @@ export function AppShell() {
     }
     checkPermission()
   }, [])
+
+  // Sync SFX settings from store to sfxManager module state.
+  useEffect(() => {
+    setSfxMuted(!sfxEnabled)
+  }, [sfxEnabled])
+
+  useEffect(() => {
+    setSfxVolume(sfxVolume)
+  }, [sfxVolume])
 
   // ESC key: toggle pause/resume during gameplay.
   // Uses getState() inside the handler — avoids stale closure over gamePhase
