@@ -23,9 +23,9 @@ function getContext(): AudioContext {
   }
   // Resume if suspended (can happen after a period of inactivity)
   if (ctx.state === 'suspended') {
-    ctx.resume().catch((err) => {
-      console.warn('[sfxManager] AudioContext resume failed:', err)
-    })
+    // resume() is intentionally fire-and-forget; Web Audio queues
+    // scheduled events and plays them once the context unblocks.
+    void ctx.resume()
   }
   return ctx
 }
