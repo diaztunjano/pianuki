@@ -88,6 +88,7 @@ export function update(dt: number): void {
   // -------------------------------------------------------------------
   const matchState = useBoundStore.getState()
   const { activeNotes } = matchState
+  let anyHit = false
   for (const enemy of matchState.enemies) {
     if (enemy.state === 'alive' && isNoteMatch(enemy, activeNotes)) {
       const hitTimeMs = performance.now()
@@ -95,10 +96,11 @@ export function update(dt: number): void {
       recordCorrectHit(reactionMs)
       const willDie = enemy.hp <= 1
       useBoundStore.getState().damageEnemy(enemy.id, 1)
-      playCorrect()
+      anyHit = true
       if (willDie) playEnemyDeath()
     }
   }
+  if (anyHit) playCorrect()
 
   // -------------------------------------------------------------------
   // Step 5: Wrong note detection — only triggers on new NoteOn events
