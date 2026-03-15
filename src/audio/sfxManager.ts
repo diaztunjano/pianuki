@@ -16,12 +16,14 @@
  */
 
 let ctx: AudioContext | null = null
+let masterGain: GainNode | null = null
 let muted = false
 let masterVolume = 0.5
 
 function getContext(): AudioContext {
   if (!ctx || ctx.state === 'closed') {
     ctx = new AudioContext()
+    masterGain = null // invalidate cached gain for old context
   }
   // Resume if suspended (e.g. after tab backgrounding)
   if (ctx.state === 'suspended') {
@@ -30,12 +32,24 @@ function getContext(): AudioContext {
   return ctx
 }
 
+function getMasterGain(ac: AudioContext): GainNode {
+  if (!masterGain || masterGain.context !== ac) {
+    masterGain = ac.createGain()
+    masterGain.gain.value = muted ? 0 : masterVolume
+    masterGain.connect(ac.destination)
+  }
+  return masterGain
+}
+
 // ---------------------------------------------------------------------------
-// Mute control
+// Mute / volume control
 // ---------------------------------------------------------------------------
 
 export function setMuted(value: boolean): void {
   muted = value
+  if (masterGain) {
+    masterGain.gain.value = muted ? 0 : masterVolume
+  }
 }
 
 export function isMuted(): boolean {
@@ -44,6 +58,9 @@ export function isMuted(): boolean {
 
 export function setVolume(value: number): void {
   masterVolume = Math.max(0, Math.min(1, value))
+  if (masterGain && !muted) {
+    masterGain.gain.value = masterVolume
+  }
 }
 
 export function getVolume(): number {
@@ -87,14 +104,13 @@ function playTone(ac: AudioContext, params: ToneParams): void {
   osc.type = type
   osc.frequency.setValueAtTime(frequency, now)
 
-  const scaledGain = peakGain * masterVolume
   gain.gain.setValueAtTime(0, now)
-  gain.gain.linearRampToValueAtTime(scaledGain, now + attack)
-  gain.gain.setValueAtTime(scaledGain, now + attack + sustain)
+  gain.gain.linearRampToValueAtTime(peakGain, now + attack)
+  gain.gain.setValueAtTime(peakGain, now + attack + sustain)
   gain.gain.linearRampToValueAtTime(0, now + attack + sustain + decay)
 
   osc.connect(gain)
-  gain.connect(ac.destination)
+  gain.connect(getMasterGain(ac))
 
   osc.start(now)
   osc.stop(now + attack + sustain + decay + 0.01)
@@ -132,11 +148,11 @@ export function playEnemyDeath(): void {
   osc.frequency.setValueAtTime(600, now)
   osc.frequency.exponentialRampToValueAtTime(200, now + 0.15)
 
-  gain.gain.setValueAtTime(0.2 * masterVolume, now)
+  gain.gain.setValueAtTime(0.2, now)
   gain.gain.linearRampToValueAtTime(0, now + 0.2)
 
   osc.connect(gain)
-  gain.connect(ac.destination)
+  gain.connect(getMasterGain(ac))
   osc.start(now)
   osc.stop(now + 0.21)
 }
