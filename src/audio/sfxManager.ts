@@ -35,7 +35,7 @@ function getMasterGain(): GainNode {
 /** Returns false (and skips sound) when SFX is disabled. Also syncs master volume. */
 async function shouldPlay(): Promise<boolean> {
   const { sfxEnabled, sfxVolume } = useBoundStore.getState().settings
-  if (!sfxEnabled) return false
+  if (!sfxEnabled || sfxVolume <= 0) return false
   await getContext()
   const mg = getMasterGain()
   mg.gain.value = sfxVolume
