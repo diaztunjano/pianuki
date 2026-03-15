@@ -4,14 +4,21 @@
  * Singleton that lazily creates an AudioContext on first play call
  * (respects browser user-gesture requirement). All sounds are synthesized
  * with OscillatorNode + GainNode envelopes — no external audio files.
+ *
+ * Reads sfxEnabled / sfxVolume from the Zustand store before every play call
+ * so settings changes take effect immediately.
  */
 
+import { useBoundStore } from '../stores'
+
 let ctx: AudioContext | null = null
-let muted = false
+let masterGain: GainNode | null = null
 
 function getContext(): AudioContext {
   if (!ctx) {
     ctx = new AudioContext()
+    masterGain = ctx.createGain()
+    masterGain.connect(ctx.destination)
   }
   // Resume if suspended (browser autoplay policy)
   if (ctx.state === 'suspended') {
@@ -20,13 +27,22 @@ function getContext(): AudioContext {
   return ctx
 }
 
-/** Mute/unmute SFX independently from mic input. */
-export function setSfxMuted(value: boolean): void {
-  muted = value
+/** Returns the master GainNode that all SFX route through. */
+function getMasterGain(): GainNode {
+  getContext()
+  return masterGain!
 }
 
-export function isSfxMuted(): boolean {
-  return muted
+/** Read current SFX settings from the store. Returns false if SFX should not play. */
+function shouldPlay(): boolean {
+  return useBoundStore.getState().settings.sfxEnabled
+}
+
+/** Sync the master gain value with the store's sfxVolume. */
+function syncVolume(): void {
+  const vol = useBoundStore.getState().settings.sfxVolume
+  const mg = getMasterGain()
+  mg.gain.setValueAtTime(vol, mg.context.currentTime)
 }
 
 // ---------------------------------------------------------------------------
@@ -40,7 +56,8 @@ function playTone(
   volume: number,
   rampDown = true,
 ): void {
-  if (muted) return
+  if (!shouldPlay()) return
+  syncVolume()
   const ac = getContext()
   const osc = ac.createOscillator()
   const gain = ac.createGain()
@@ -54,7 +71,7 @@ function playTone(
   }
 
   osc.connect(gain)
-  gain.connect(ac.destination)
+  gain.connect(getMasterGain())
   osc.start(ac.currentTime)
   osc.stop(ac.currentTime + duration)
 }
@@ -65,7 +82,7 @@ function playChord(
   duration: number,
   volume: number,
 ): void {
-  if (muted) return
+  if (!shouldPlay()) return
   const perOsc = volume / frequencies.length
   for (const freq of frequencies) {
     playTone(freq, type, duration, perOsc)
@@ -78,9 +95,11 @@ function playChord(
 
 /** Correct note — bright ascending chime (major third interval). */
 export function playCorrect(): void {
-  if (muted) return
+  if (!shouldPlay()) return
+  syncVolume()
   const ac = getContext()
   const now = ac.currentTime
+  const output = getMasterGain()
 
   // Two quick ascending sine tones
   const notes = [523.25, 659.25] // C5, E5
@@ -93,7 +112,7 @@ export function playCorrect(): void {
     gain.gain.linearRampToValueAtTime(0.25, now + i * 0.08 + 0.02)
     gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.2)
     osc.connect(gain)
-    gain.connect(ac.destination)
+    gain.connect(output)
     osc.start(now + i * 0.08)
     osc.stop(now + i * 0.08 + 0.2)
   }
@@ -101,9 +120,11 @@ export function playCorrect(): void {
 
 /** Wrong note — dissonant buzz. */
 export function playWrong(): void {
-  if (muted) return
+  if (!shouldPlay()) return
+  syncVolume()
   const ac = getContext()
   const now = ac.currentTime
+  const output = getMasterGain()
 
   // Two detuned sawtooth oscillators for a harsh buzz
   const freqs = [110, 117] // close frequencies = beat frequency buzz
@@ -115,7 +136,7 @@ export function playWrong(): void {
     gain.gain.setValueAtTime(0.15, now)
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3)
     osc.connect(gain)
-    gain.connect(ac.destination)
+    gain.connect(output)
     osc.start(now)
     osc.stop(now + 0.3)
   }
@@ -123,9 +144,11 @@ export function playWrong(): void {
 
 /** Enemy death — quick descending "pop". */
 export function playEnemyDeath(): void {
-  if (muted) return
+  if (!shouldPlay()) return
+  syncVolume()
   const ac = getContext()
   const now = ac.currentTime
+  const output = getMasterGain()
 
   const osc = ac.createOscillator()
   const gain = ac.createGain()
@@ -135,16 +158,18 @@ export function playEnemyDeath(): void {
   gain.gain.setValueAtTime(0.3, now)
   gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15)
   osc.connect(gain)
-  gain.connect(ac.destination)
+  gain.connect(output)
   osc.start(now)
   osc.stop(now + 0.15)
 }
 
 /** Wave start — rising sweep. */
 export function playWaveStart(): void {
-  if (muted) return
+  if (!shouldPlay()) return
+  syncVolume()
   const ac = getContext()
   const now = ac.currentTime
+  const output = getMasterGain()
 
   const osc = ac.createOscillator()
   const gain = ac.createGain()
@@ -154,16 +179,18 @@ export function playWaveStart(): void {
   gain.gain.setValueAtTime(0.2, now)
   gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4)
   osc.connect(gain)
-  gain.connect(ac.destination)
+  gain.connect(output)
   osc.start(now)
   osc.stop(now + 0.4)
 }
 
 /** Wave end — triumphant major chord arpeggio. */
 export function playWaveEnd(): void {
-  if (muted) return
+  if (!shouldPlay()) return
+  syncVolume()
   const ac = getContext()
   const now = ac.currentTime
+  const output = getMasterGain()
 
   // C major arpeggio: C5, E5, G5
   const notes = [523.25, 659.25, 783.99]
@@ -177,7 +204,7 @@ export function playWaveEnd(): void {
     gain.gain.linearRampToValueAtTime(0.2, start + 0.03)
     gain.gain.exponentialRampToValueAtTime(0.001, start + 0.4)
     osc.connect(gain)
-    gain.connect(ac.destination)
+    gain.connect(output)
     osc.start(start)
     osc.stop(start + 0.4)
   }
@@ -185,9 +212,11 @@ export function playWaveEnd(): void {
 
 /** Game over — descending minor chord, slow fade. */
 export function playGameOver(): void {
-  if (muted) return
+  if (!shouldPlay()) return
+  syncVolume()
   const ac = getContext()
   const now = ac.currentTime
+  const output = getMasterGain()
 
   // Descending minor triad: Eb4, C4, Ab3
   const notes = [311.13, 261.63, 207.65]
@@ -201,7 +230,7 @@ export function playGameOver(): void {
     gain.gain.linearRampToValueAtTime(0.2, start + 0.05)
     gain.gain.exponentialRampToValueAtTime(0.001, start + 0.8)
     osc.connect(gain)
-    gain.connect(ac.destination)
+    gain.connect(output)
     osc.start(start)
     osc.stop(start + 0.8)
   }
