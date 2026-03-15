@@ -14,7 +14,7 @@ import { useBoundStore } from '../stores'
 let ctx: AudioContext | null = null
 let masterGain: GainNode | null = null
 
-function getContext(): AudioContext {
+async function getContext(): Promise<AudioContext> {
   if (!ctx) {
     ctx = new AudioContext()
     masterGain = ctx.createGain()
@@ -22,20 +22,21 @@ function getContext(): AudioContext {
   }
   // Resume if suspended (browsers suspend until user gesture)
   if (ctx.state === 'suspended') {
-    void ctx.resume()
+    await ctx.resume()
   }
   return ctx
 }
 
 function getMasterGain(): GainNode {
-  getContext() // ensure initialised
+  // masterGain is always initialised after getContext() resolves
   return masterGain!
 }
 
 /** Returns false (and skips sound) when SFX is disabled. Also syncs master volume. */
-function shouldPlay(): boolean {
+async function shouldPlay(): Promise<boolean> {
   const { sfxEnabled, sfxVolume } = useBoundStore.getState().settings
   if (!sfxEnabled) return false
+  await getContext()
   const mg = getMasterGain()
   mg.gain.value = sfxVolume
   return true
@@ -107,9 +108,9 @@ function playNoiseBurst(
 // ---------------------------------------------------------------------------
 
 /** Bright ascending chime — correct note hit. */
-export function playCorrect(): void {
-  if (!shouldPlay()) return
-  const ac = getContext()
+export async function playCorrect(): Promise<void> {
+  if (!(await shouldPlay())) return
+  const ac = ctx!
   const t = ac.currentTime
   // Two-note ascending arpeggio (C6 → E6)
   playTone(ac, 1047, 'sine', t, 0.12, 0.25)
@@ -117,9 +118,9 @@ export function playCorrect(): void {
 }
 
 /** Low distorted buzz — wrong note. */
-export function playWrong(): void {
-  if (!shouldPlay()) return
-  const ac = getContext()
+export async function playWrong(): Promise<void> {
+  if (!(await shouldPlay())) return
+  const ac = ctx!
   const t = ac.currentTime
   // Dissonant square wave + noise
   playTone(ac, 110, 'square', t, 0.18, 0.15)
@@ -128,9 +129,9 @@ export function playWrong(): void {
 }
 
 /** Quick descending pop — enemy defeated. */
-export function playEnemyDeath(): void {
-  if (!shouldPlay()) return
-  const ac = getContext()
+export async function playEnemyDeath(): Promise<void> {
+  if (!(await shouldPlay())) return
+  const ac = ctx!
   const t = ac.currentTime
 
   const osc = ac.createOscillator()
@@ -150,9 +151,9 @@ export function playEnemyDeath(): void {
 }
 
 /** Rising three-note fanfare — wave starting. */
-export function playWaveStart(): void {
-  if (!shouldPlay()) return
-  const ac = getContext()
+export async function playWaveStart(): Promise<void> {
+  if (!(await shouldPlay())) return
+  const ac = ctx!
   const t = ac.currentTime
   // C5 → E5 → G5 quick arpeggio
   playTone(ac, 523, 'triangle', t, 0.12, 0.2)
@@ -161,9 +162,9 @@ export function playWaveStart(): void {
 }
 
 /** Descending resolution — wave cleared. */
-export function playWaveEnd(): void {
-  if (!shouldPlay()) return
-  const ac = getContext()
+export async function playWaveEnd(): Promise<void> {
+  if (!(await shouldPlay())) return
+  const ac = ctx!
   const t = ac.currentTime
   // G5 → E5 → C5 → C6 (triumphant resolution)
   playTone(ac, 784, 'sine', t, 0.12, 0.2)
@@ -173,9 +174,9 @@ export function playWaveEnd(): void {
 }
 
 /** Dramatic low drone + dissonance — game over. */
-export function playGameOver(): void {
-  if (!shouldPlay()) return
-  const ac = getContext()
+export async function playGameOver(): Promise<void> {
+  if (!(await shouldPlay())) return
+  const ac = ctx!
   const t = ac.currentTime
   // Low drone
   playTone(ac, 80, 'sawtooth', t, 1.0, 0.15)
