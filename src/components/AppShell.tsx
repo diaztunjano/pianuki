@@ -10,6 +10,7 @@ import { MicExplainScreen } from './MicExplainScreen'
 import { useMidiInput } from '../hooks/useMidiInput'
 import { useAudioInput } from '../hooks/useAudioInput'
 import { useBoundStore } from '../stores'
+import { setSfxMuted, setSfxVolume } from '../audio/sfxManager'
 
 // --- AppShell ---
 
@@ -66,6 +67,18 @@ export function AppShell() {
     }
     checkPermission()
   }, [])
+
+  // Sync persisted SFX settings to the sfxManager module on mount and changes.
+  const sfxEnabled = useBoundStore((s) => s.settings.sfxEnabled)
+  const sfxVolume = useBoundStore((s) => s.settings.sfxVolume)
+
+  useEffect(() => {
+    setSfxMuted(!sfxEnabled)
+  }, [sfxEnabled])
+
+  useEffect(() => {
+    setSfxVolume(sfxVolume)
+  }, [sfxVolume])
 
   // ESC key: toggle pause/resume during gameplay.
   // Uses getState() inside the handler — avoids stale closure over gamePhase

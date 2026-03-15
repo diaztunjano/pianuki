@@ -8,6 +8,7 @@
 
 let ctx: AudioContext | null = null
 let muted = false
+let volumeScale = 1.0
 
 function getContext(): AudioContext {
   if (!ctx) {
@@ -41,10 +42,11 @@ function playTone(
   osc.frequency.value = frequency
   osc.detune.value = detune
 
+  const scaledVol = volume * volumeScale
   const gain = ac.createGain()
   gain.gain.setValueAtTime(0, now)
-  gain.gain.linearRampToValueAtTime(volume, now + attack)
-  gain.gain.setValueAtTime(volume, now + attack + sustain)
+  gain.gain.linearRampToValueAtTime(scaledVol, now + attack)
+  gain.gain.setValueAtTime(scaledVol, now + attack + sustain)
   gain.gain.linearRampToValueAtTime(0, now + attack + sustain + release)
 
   osc.connect(gain)
@@ -80,7 +82,7 @@ export function playEnemyDeath(): void {
   osc.frequency.exponentialRampToValueAtTime(200, now + 0.2)
 
   const gain = ac.createGain()
-  gain.gain.setValueAtTime(0.25, now)
+  gain.gain.setValueAtTime(0.25 * volumeScale, now)
   gain.gain.linearRampToValueAtTime(0, now + 0.25)
 
   osc.connect(gain)
@@ -104,7 +106,7 @@ export function playWaveStart(): void {
 
     const gain = ac.createGain()
     gain.gain.setValueAtTime(0, now + offset)
-    gain.gain.linearRampToValueAtTime(0.2, now + offset + 0.02)
+    gain.gain.linearRampToValueAtTime(0.2 * volumeScale, now + offset + 0.02)
     gain.gain.linearRampToValueAtTime(0, now + offset + 0.15)
 
     osc.connect(gain)
@@ -127,8 +129,8 @@ export function playWaveEnd(): void {
 
   const gain = ac.createGain()
   gain.gain.setValueAtTime(0, now + 0.15)
-  gain.gain.linearRampToValueAtTime(0.25, now + 0.17)
-  gain.gain.setValueAtTime(0.25, now + 0.3)
+  gain.gain.linearRampToValueAtTime(0.25 * volumeScale, now + 0.17)
+  gain.gain.setValueAtTime(0.25 * volumeScale, now + 0.3)
   gain.gain.linearRampToValueAtTime(0, now + 0.55)
 
   osc.connect(gain)
@@ -152,8 +154,8 @@ export function playGameOver(): void {
 
     const gain = ac.createGain()
     gain.gain.setValueAtTime(0, now + offset)
-    gain.gain.linearRampToValueAtTime(0.2, now + offset + 0.02)
-    gain.gain.setValueAtTime(0.2, now + offset + 0.12)
+    gain.gain.linearRampToValueAtTime(0.2 * volumeScale, now + offset + 0.02)
+    gain.gain.setValueAtTime(0.2 * volumeScale, now + offset + 0.12)
     gain.gain.linearRampToValueAtTime(0, now + offset + 0.25)
 
     osc.connect(gain)
@@ -171,4 +173,9 @@ export function setSfxMuted(value: boolean): void {
 /** Get current mute state */
 export function isSfxMuted(): boolean {
   return muted
+}
+
+/** Set volume scale for all SFX (0–1, default 1) */
+export function setSfxVolume(value: number): void {
+  volumeScale = Math.max(0, Math.min(1, value))
 }
