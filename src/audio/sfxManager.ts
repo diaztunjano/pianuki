@@ -93,7 +93,7 @@ function playNoiseBurst(
   source.buffer = buffer
 
   const gain = ac.createGain()
-  gain.gain.setValueAtTime(volume, startTime)
+  gain.gain.setValueAtTime(1.0, startTime)
   gain.gain.linearRampToValueAtTime(0, startTime + duration)
 
   source.connect(gain)
