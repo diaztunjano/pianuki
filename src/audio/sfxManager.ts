@@ -21,9 +21,11 @@ function getContext(): AudioContext {
   if (!_ctx || _ctx.state === 'closed') {
     _ctx = new AudioContext()
   }
-  // Resume in case the context was suspended (e.g. tab switch)
+  // Resume in case the context was suspended (e.g. tab switch).
+  // resume() is async; fire-and-forget with error suppression. Callers must
+  // guard against a still-suspended context (currentTime frozen) themselves.
   if (_ctx.state === 'suspended') {
-    void _ctx.resume()
+    _ctx.resume().catch(() => {/* ignore */})
   }
   return _ctx
 }
@@ -75,6 +77,15 @@ function scheduleOscillator(
   attackTime: number,
   decayTime: number,
 ): void {
+  // Guard: if attackTime + decayTime exceed duration, clamp decayTime to avoid
+  // an abrupt oscillator stop mid-ramp that would produce an audible click/pop.
+  if (attackTime + decayTime > duration) {
+    console.warn(
+      `scheduleOscillator: attackTime (${attackTime}) + decayTime (${decayTime}) exceeds duration (${duration}); clamping decayTime to avoid click`,
+    )
+    decayTime = duration - attackTime
+  }
+
   const osc = ctx.createOscillator()
   const gain = ctx.createGain()
 
