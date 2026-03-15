@@ -5,7 +5,7 @@ import { enableMapSet } from 'immer'
 import { Enemy, EnemySpawnEntry, buildEnemy } from '../game/enemyTypes'
 import { LEVEL_CONFIGS } from '../game/waveConfig'
 import { resetStats } from '../game/statsTracker'
-import { setSfxMuted, setSfxVolume, playWaveStart } from '../audio/sfxManager'
+import { applySettings, playWaveStart } from '../audio/sfxManager'
 
 // Enable immer support for Set/Map (needed for activeNotes: Set<number>)
 enableMapSet()
@@ -595,8 +595,7 @@ export const useBoundStore = create<BoundStore>()(
 // Keep sfxManager in sync with store settings
 useBoundStore.subscribe(
   (state) => {
-    setSfxMuted(!state.settings.sfxEnabled)
-    setSfxVolume(state.settings.sfxVolume)
+    applySettings(state.settings.sfxEnabled, state.settings.sfxVolume)
   },
 )
 
