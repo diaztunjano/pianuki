@@ -1,5 +1,6 @@
 import { LEVEL_CONFIGS } from '../game/waveConfig'
 import { useBoundStore } from '../stores'
+import { playWaveStart } from '../audio/sfxManager'
 
 /**
  * Format milliseconds into a human-readable duration string.
@@ -137,7 +138,10 @@ export function LevelSummaryOverlay() {
         </button>
         <button
           className={secondaryBtnClass}
-          onClick={() => startLevel(levelIndex)}
+          onClick={() => {
+            playWaveStart()
+            startLevel(levelIndex)
+          }}
         >
           Replay
         </button>

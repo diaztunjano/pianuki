@@ -1,11 +1,23 @@
 import { useBoundStore } from '../stores'
 import { isNoteMatch } from './noteMatch'
 import { recordEnemySpawned, recordCorrectHit, recordMiss, computeLevelResult } from './statsTracker'
+import {
+  playCorrect,
+  playWrong,
+  playEnemyDeath,
+  playWaveEnd,
+  playGameOver,
+  setSfxMuted,
+  setSfxMasterVolume,
+} from '../audio/sfxManager'
 import type { Enemy } from './enemyTypes'
 
 // Module-level state for wrong-note detection
 // Tracks the timestamp of the last NoteOn event we already processed
 let lastCheckedEventTs = 0
+
+// Track previous gamePhase so we detect transitions (for one-shot SFX)
+let prevGamePhase: string = 'idle'
 
 /**
  * Fixed-timestep game update function.
@@ -13,6 +25,13 @@ let lastCheckedEventTs = 0
  * Reads Zustand state fresh at each step — do NOT cache getState() at function top.
  */
 export function update(dt: number): void {
+  // -------------------------------------------------------------------
+  // Step 0: Sync SFX mute / volume with store settings
+  // -------------------------------------------------------------------
+  const { sfxEnabled, sfxVolume } = useBoundStore.getState().settings
+  setSfxMuted(!sfxEnabled)
+  setSfxMasterVolume(sfxVolume)
+
   // -------------------------------------------------------------------
   // Step 1: Spawn enemies from the queue
   // -------------------------------------------------------------------
@@ -82,6 +101,14 @@ export function update(dt: number): void {
     }
   }
 
+  // Play game-over sound if the phase just transitioned to gameover in Step 3
+  const postGoalPhase = useBoundStore.getState().gamePhase
+  if (postGoalPhase === 'gameover' && prevGamePhase !== 'gameover') {
+    playGameOver()
+    prevGamePhase = postGoalPhase
+    return // Skip remaining steps — game is over
+  }
+
   // -------------------------------------------------------------------
   // Step 4: Check note matches — damage enemies that match active notes
   // -------------------------------------------------------------------
@@ -92,6 +119,11 @@ export function update(dt: number): void {
       const hitTimeMs = performance.now()
       const reactionMs = hitTimeMs - enemy.spawnedAtMs
       recordCorrectHit(reactionMs)
+      playCorrect()
+      // Check if this damage will kill the enemy (hp 1 → 0)
+      if (enemy.hp <= 1) {
+        playEnemyDeath()
+      }
       useBoundStore.getState().damageEnemy(enemy.id, 1)
     }
   }
@@ -130,6 +162,7 @@ export function update(dt: number): void {
   lastCheckedEventTs = latestEventTs
 
   if (wrongNoteDetected) {
+    playWrong()
     useBoundStore.getState().triggerWrongNote()
   }
 
@@ -160,12 +193,17 @@ export function update(dt: number): void {
     const nextWaveIndex = waveCheckState.currentWave + 1
     if (nextWaveIndex < waveCheckState.totalWaves) {
       // More waves remain — show wave-clear screen
+      playWaveEnd()
       useBoundStore.setState({ gamePhase: 'wave-clear' })
     } else {
       // All waves complete — compute stats and transition to level-complete
+      playWaveEnd()
       const result = computeLevelResult(waveCheckState.currentLevel)
       useBoundStore.getState().recordLevelComplete(waveCheckState.currentLevel, result)
       useBoundStore.setState({ gamePhase: 'level-complete', lastLevelResult: result })
     }
   }
+
+  // Track phase for next tick's transition detection
+  prevGamePhase = useBoundStore.getState().gamePhase
 }
