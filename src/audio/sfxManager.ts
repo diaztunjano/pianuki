@@ -6,19 +6,30 @@
  * with OscillatorNode + GainNode envelopes — no external audio files.
  */
 
-let ctx: AudioContext | null = null
-let muted = false
-let masterVolume = 0.5
+import { useBoundStore } from '../stores/audioStore'
 
-function getContext(): AudioContext {
+let ctx: AudioContext | null = null
+let masterGain: GainNode | null = null
+
+async function getContext(): Promise<AudioContext> {
   if (!ctx) {
     ctx = new AudioContext()
   }
   // Resume if suspended (browser autoplay policy)
   if (ctx.state === 'suspended') {
-    void ctx.resume()
+    await ctx.resume()
   }
   return ctx
+}
+
+function getMasterGain(ac: AudioContext): GainNode {
+  if (!masterGain) {
+    masterGain = ac.createGain()
+    masterGain.connect(ac.destination)
+  }
+  const { sfxEnabled, sfxVolume } = useBoundStore.getState().settings
+  masterGain.gain.value = sfxEnabled ? sfxVolume : 0
+  return masterGain
 }
 
 // ---------------------------------------------------------------------------
@@ -27,6 +38,7 @@ function getContext(): AudioContext {
 
 /** Schedule an oscillator with an ADSR-ish gain envelope. */
 function playTone(
+  ac: AudioContext,
   frequency: number,
   type: OscillatorType,
   attack: number,
@@ -34,7 +46,6 @@ function playTone(
   release: number,
   volume = 0.3,
 ): void {
-  const ac = getContext()
   const now = ac.currentTime
 
   const osc = ac.createOscillator()
@@ -43,23 +54,21 @@ function playTone(
   osc.type = type
   osc.frequency.setValueAtTime(frequency, now)
 
-  const v = volume * masterVolume
   gain.gain.setValueAtTime(0, now)
-  gain.gain.linearRampToValueAtTime(v, now + attack)
-  gain.gain.setValueAtTime(v, now + attack)
-  gain.gain.linearRampToValueAtTime(v * 0.6, now + attack + sustain)
+  gain.gain.linearRampToValueAtTime(volume, now + attack)
+  gain.gain.setValueAtTime(volume, now + attack)
+  gain.gain.linearRampToValueAtTime(volume * 0.6, now + attack + sustain)
   gain.gain.linearRampToValueAtTime(0, now + attack + sustain + release)
 
   osc.connect(gain)
-  gain.connect(ac.destination)
+  gain.connect(getMasterGain(ac))
 
   osc.start(now)
   osc.stop(now + attack + sustain + release + 0.01)
 }
 
 /** Play a short noise burst (used for buzz / explosion textures). */
-function playNoise(duration: number, volume = 0.15): void {
-  const ac = getContext()
+function playNoise(ac: AudioContext, duration: number, volume = 0.15): void {
   const now = ac.currentTime
   const sampleRate = ac.sampleRate
   const length = Math.floor(sampleRate * duration)
@@ -74,12 +83,11 @@ function playNoise(duration: number, volume = 0.15): void {
   source.buffer = buffer
 
   const gain = ac.createGain()
-  const v = volume * masterVolume
-  gain.gain.setValueAtTime(v, now)
+  gain.gain.setValueAtTime(volume, now)
   gain.gain.linearRampToValueAtTime(0, now + duration)
 
   source.connect(gain)
-  gain.connect(ac.destination)
+  gain.connect(getMasterGain(ac))
   source.start(now)
 }
 
@@ -88,27 +96,25 @@ function playNoise(duration: number, volume = 0.15): void {
 // ---------------------------------------------------------------------------
 
 /** Bright ascending chime — correct note played. */
-export function playCorrect(): void {
-  if (muted) return
+export async function playCorrect(): Promise<void> {
+  const ac = await getContext()
   // Two-note ascending arpeggio (C6 → E6)
-  playTone(1047, 'sine', 0.01, 0.06, 0.12, 0.25)
+  playTone(ac, 1047, 'sine', 0.01, 0.06, 0.12, 0.25)
   setTimeout(() => {
-    if (muted) return
-    playTone(1319, 'sine', 0.01, 0.06, 0.15, 0.2)
+    playTone(ac, 1319, 'sine', 0.01, 0.06, 0.15, 0.2)
   }, 60)
 }
 
 /** Low distorted buzz — wrong note played. */
-export function playWrong(): void {
-  if (muted) return
-  playTone(110, 'sawtooth', 0.005, 0.08, 0.1, 0.2)
-  playNoise(0.12, 0.1)
+export async function playWrong(): Promise<void> {
+  const ac = await getContext()
+  playTone(ac, 110, 'sawtooth', 0.005, 0.08, 0.1, 0.2)
+  playNoise(ac, 0.12, 0.1)
 }
 
 /** Quick descending pop — enemy defeated. */
-export function playEnemyDeath(): void {
-  if (muted) return
-  const ac = getContext()
+export async function playEnemyDeath(): Promise<void> {
+  const ac = await getContext()
   const now = ac.currentTime
 
   const osc = ac.createOscillator()
@@ -122,38 +128,37 @@ export function playEnemyDeath(): void {
   gain.gain.linearRampToValueAtTime(0, now + 0.2)
 
   osc.connect(gain)
-  gain.connect(ac.destination)
+  gain.connect(getMasterGain(ac))
   osc.start(now)
   osc.stop(now + 0.21)
 
-  playNoise(0.08, 0.08)
+  playNoise(ac, 0.08, 0.08)
 }
 
 /** Rising fanfare — wave starting. */
-export function playWaveStart(): void {
-  if (muted) return
+export async function playWaveStart(): Promise<void> {
+  const ac = await getContext()
   // Three ascending tones: C5 → E5 → G5
   const notes = [523, 659, 784]
   notes.forEach((freq, i) => {
     setTimeout(() => {
-      if (muted) return
-      playTone(freq, 'triangle', 0.01, 0.08, 0.1, 0.2)
+      playTone(ac, freq, 'triangle', 0.01, 0.08, 0.1, 0.2)
     }, i * 100)
   })
 }
 
 /** Resolved chord — wave cleared. */
-export function playWaveEnd(): void {
-  if (muted) return
+export async function playWaveEnd(): Promise<void> {
+  const ac = await getContext()
   // Major chord played together: C5 + E5 + G5
-  playTone(523, 'sine', 0.01, 0.15, 0.3, 0.15)
-  playTone(659, 'sine', 0.01, 0.15, 0.3, 0.12)
-  playTone(784, 'sine', 0.01, 0.15, 0.3, 0.12)
+  playTone(ac, 523, 'sine', 0.01, 0.15, 0.3, 0.15)
+  playTone(ac, 659, 'sine', 0.01, 0.15, 0.3, 0.12)
+  playTone(ac, 784, 'sine', 0.01, 0.15, 0.3, 0.12)
 }
 
 /** Dramatic descending tones — game over. */
-export function playGameOver(): void {
-  if (muted) return
+export async function playGameOver(): Promise<void> {
+  const ac = await getContext()
   // Descending minor arpeggio: E5 → C5 → A4 → low rumble
   const notes: [number, OscillatorType][] = [
     [659, 'triangle'],
@@ -163,33 +168,31 @@ export function playGameOver(): void {
   ]
   notes.forEach(([freq, type], i) => {
     setTimeout(() => {
-      if (muted) return
-      playTone(freq, type, 0.02, 0.12, 0.2 + i * 0.05, 0.2)
+      playTone(ac, freq, type, 0.02, 0.12, 0.2 + i * 0.05, 0.2)
     }, i * 180)
   })
   // Final noise rumble
   setTimeout(() => {
-    if (muted) return
-    playNoise(0.4, 0.12)
+    playNoise(ac, 0.4, 0.12)
   }, notes.length * 180)
 }
 
 // ---------------------------------------------------------------------------
-// Mute control
+// Mute control (kept for backwards compatibility with AppShell sync)
 // ---------------------------------------------------------------------------
 
-export function setSfxMuted(value: boolean): void {
-  muted = value
+export function setSfxMuted(_value: boolean): void {
+  // No-op: mute is now controlled via the master gain node reading store state
 }
 
 export function isSfxMuted(): boolean {
-  return muted
+  return !useBoundStore.getState().settings.sfxEnabled
 }
 
-export function setSfxMasterVolume(value: number): void {
-  masterVolume = Math.max(0, Math.min(1, value))
+export function setSfxMasterVolume(_value: number): void {
+  // No-op: volume is now controlled via the master gain node reading store state
 }
 
 export function getSfxMasterVolume(): number {
-  return masterVolume
+  return useBoundStore.getState().settings.sfxVolume
 }

@@ -7,8 +7,6 @@ import {
   playEnemyDeath,
   playWaveEnd,
   playGameOver,
-  setSfxMuted,
-  setSfxMasterVolume,
 } from '../audio/sfxManager'
 import type { Enemy } from './enemyTypes'
 
@@ -25,13 +23,6 @@ let prevGamePhase: string = 'idle'
  * Reads Zustand state fresh at each step — do NOT cache getState() at function top.
  */
 export function update(dt: number): void {
-  // -------------------------------------------------------------------
-  // Step 0: Sync SFX mute / volume with store settings
-  // -------------------------------------------------------------------
-  const { sfxEnabled, sfxVolume } = useBoundStore.getState().settings
-  setSfxMuted(!sfxEnabled)
-  setSfxMasterVolume(sfxVolume)
-
   // -------------------------------------------------------------------
   // Step 1: Spawn enemies from the queue
   // -------------------------------------------------------------------
