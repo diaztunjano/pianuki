@@ -8,6 +8,7 @@
 
 let ctx: AudioContext | null = null
 let muted = false
+let masterVolume = 0.7
 
 /** Lazily initialise (or resume) the shared AudioContext. */
 function getContext(): AudioContext {
@@ -37,6 +38,10 @@ export function isSfxMuted(): boolean {
   return muted
 }
 
+export function setSfxVolume(value: number): void {
+  masterVolume = Math.max(0, Math.min(1, value))
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -54,11 +59,12 @@ function playTone(
 ): void {
   const osc = ac.createOscillator()
   const gain = ac.createGain()
+  const scaledVol = volume * masterVolume
   osc.type = type
   osc.frequency.setValueAtTime(frequency, startTime)
   gain.gain.setValueAtTime(0, startTime)
-  gain.gain.linearRampToValueAtTime(volume, startTime + attackTime)
-  gain.gain.setValueAtTime(volume, startTime + duration - releaseTime)
+  gain.gain.linearRampToValueAtTime(scaledVol, startTime + attackTime)
+  gain.gain.setValueAtTime(scaledVol, startTime + duration - releaseTime)
   gain.gain.linearRampToValueAtTime(0, startTime + duration)
   osc.connect(gain)
   gain.connect(ac.destination)
@@ -104,7 +110,7 @@ export function playEnemyDeath(): void {
   osc.type = 'triangle'
   osc.frequency.setValueAtTime(784, t)          // G5
   osc.frequency.exponentialRampToValueAtTime(523, t + 0.15) // → C5
-  gain.gain.setValueAtTime(0.3, t)
+  gain.gain.setValueAtTime(0.3 * masterVolume, t)
   gain.gain.linearRampToValueAtTime(0, t + 0.2)
   osc.connect(gain)
   gain.connect(ac.destination)

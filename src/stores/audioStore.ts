@@ -5,6 +5,7 @@ import { enableMapSet } from 'immer'
 import { Enemy, EnemySpawnEntry, buildEnemy } from '../game/enemyTypes'
 import { LEVEL_CONFIGS } from '../game/waveConfig'
 import { resetStats } from '../game/statsTracker'
+import { setSfxMuted, setSfxVolume } from '../audio/sfxManager'
 
 // Enable immer support for Set/Map (needed for activeNotes: Set<number>)
 enableMapSet()
@@ -56,6 +57,8 @@ export interface PersistedState {
     inputSource: 'mic' | 'midi'
     latencyOffsetMs: number
     hasSeenOnboarding: boolean
+    sfxEnabled: boolean
+    sfxVolume: number                // 0–1, default 0.7
   }
 }
 
@@ -469,11 +472,15 @@ interface SettingsSlice {
     inputSource: 'mic' | 'midi'
     latencyOffsetMs: number        // range -200..200, default 0
     hasSeenOnboarding: boolean     // first-run gate, default false
+    sfxEnabled: boolean            // SFX on/off, default true
+    sfxVolume: number              // 0–1, default 0.7
   }
   setPenaltyMode: (mode: 'easy' | 'normal' | 'hard') => void
   setInputSource: (source: 'mic' | 'midi') => void
   setLatencyOffset: (ms: number) => void
   markOnboardingSeen: () => void
+  setSfxEnabled: (enabled: boolean) => void
+  setSfxVolume: (volume: number) => void
 }
 
 const createSettingsSlice: StateCreator<
@@ -487,6 +494,8 @@ const createSettingsSlice: StateCreator<
     inputSource: 'mic',
     latencyOffsetMs: 0,
     hasSeenOnboarding: false,
+    sfxEnabled: true,
+    sfxVolume: 0.7,
   },
 
   setPenaltyMode: (mode) =>
@@ -524,6 +533,24 @@ const createSettingsSlice: StateCreator<
       false,
       'settings/markOnboardingSeen',
     ),
+
+  setSfxEnabled: (enabled) =>
+    set(
+      (draft) => {
+        draft.settings.sfxEnabled = enabled
+      },
+      false,
+      'settings/setSfxEnabled',
+    ),
+
+  setSfxVolume: (volume) =>
+    set(
+      (draft) => {
+        draft.settings.sfxVolume = Math.max(0, Math.min(1, volume))
+      },
+      false,
+      'settings/setSfxVolume',
+    ),
 })
 
 // --- Bound Store ---
@@ -542,7 +569,7 @@ export const useBoundStore = create<BoundStore>()(
       {
         name: 'pianuki-progress',
         storage: createJSONStorage(() => localStorage),
-        version: 2,
+        version: 3,
         partialize: (state): PersistedState => ({
           progress: state.progress,
           settings: state.settings,
@@ -553,12 +580,24 @@ export const useBoundStore = create<BoundStore>()(
             state.settings.latencyOffsetMs = state.settings.latencyOffsetMs ?? 0
             state.settings.hasSeenOnboarding = state.settings.hasSeenOnboarding ?? false
           }
+          if (version < 3) {
+            state.settings.sfxEnabled = state.settings.sfxEnabled ?? true
+            state.settings.sfxVolume = state.settings.sfxVolume ?? 0.7
+          }
           return state
         },
       },
     ),
     { name: 'pianuki-store' },
   ),
+)
+
+// Keep sfxManager in sync with store settings
+useBoundStore.subscribe(
+  (state) => {
+    setSfxMuted(!state.settings.sfxEnabled)
+    setSfxVolume(state.settings.sfxVolume)
+  },
 )
 
 // Convenience selectors
