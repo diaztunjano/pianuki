@@ -5,7 +5,7 @@ import { enableMapSet } from 'immer'
 import { Enemy, EnemySpawnEntry, buildEnemy } from '../game/enemyTypes'
 import { LEVEL_CONFIGS } from '../game/waveConfig'
 import { resetStats } from '../game/statsTracker'
-import { setSfxMuted, setSfxVolume } from '../audio/sfxManager'
+import { setSfxMuted, setSfxVolume, playWaveStart } from '../audio/sfxManager'
 
 // Enable immer support for Set/Map (needed for activeNotes: Set<number>)
 enableMapSet()
@@ -597,6 +597,21 @@ useBoundStore.subscribe(
   (state) => {
     setSfxMuted(!state.settings.sfxEnabled)
     setSfxVolume(state.settings.sfxVolume)
+  },
+)
+
+// Play wave-start SFX when a new wave begins (not on resume from pause)
+let prevGamePhase = useBoundStore.getState().gamePhase
+useBoundStore.subscribe(
+  (state) => {
+    if (
+      state.gamePhase === 'playing' &&
+      prevGamePhase !== 'playing' &&
+      prevGamePhase !== 'paused'
+    ) {
+      playWaveStart()
+    }
+    prevGamePhase = state.gamePhase
   },
 )
 
