@@ -8,6 +8,7 @@
 
 let ctx: AudioContext | null = null
 let muted = false
+let masterVolume = 0.5
 
 function getContext(): AudioContext {
   if (!ctx) {
@@ -35,8 +36,9 @@ function playTone(
   osc.type = type
   osc.frequency.setValueAtTime(frequency, startTime)
 
+  const scaledGain = gain * masterVolume
   vol.gain.setValueAtTime(0, startTime)
-  vol.gain.linearRampToValueAtTime(gain, startTime + 0.01)
+  vol.gain.linearRampToValueAtTime(scaledGain, startTime + 0.01)
   vol.gain.linearRampToValueAtTime(0, startTime + duration)
 
   osc.connect(vol)
@@ -79,7 +81,7 @@ export function playEnemyDeath(): void {
   osc.type = 'square'
   osc.frequency.setValueAtTime(800, t)
   osc.frequency.exponentialRampToValueAtTime(200, t + 0.15)
-  vol.gain.setValueAtTime(0.2, t)
+  vol.gain.setValueAtTime(0.2 * masterVolume, t)
   vol.gain.linearRampToValueAtTime(0, t + 0.2)
   osc.connect(vol)
   vol.connect(ac.destination)
@@ -127,4 +129,14 @@ export function setSfxMuted(value: boolean): void {
 /** Returns current mute state. */
 export function isSfxMuted(): boolean {
   return muted
+}
+
+/** Set master volume for all SFX (0–1). */
+export function setSfxVolume(volume: number): void {
+  masterVolume = Math.max(0, Math.min(1, volume))
+}
+
+/** Returns current master volume. */
+export function getSfxVolume(): number {
+  return masterVolume
 }
