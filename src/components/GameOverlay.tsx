@@ -36,6 +36,9 @@ export function GameOverlay() {
     const prev = prevPhaseRef.current
     prevPhaseRef.current = gamePhase
 
+    // Skip on mount (or any remount) when the phase hasn't actually changed
+    if (prev === gamePhase) return
+
     if (gamePhase === 'gameover') {
       playGameOver()
     } else if (gamePhase === 'wave-clear') {
