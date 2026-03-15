@@ -16,16 +16,13 @@ let _ctx: AudioContext | null = null
 let _muted = false
 let _volume = 1.0
 
-/** Lazily obtain (or create) the shared AudioContext. */
-function getContext(): AudioContext {
+/** Lazily obtain (or create) the shared AudioContext, ensuring it is resumed. */
+async function getContext(): Promise<AudioContext> {
   if (!_ctx || _ctx.state === 'closed') {
     _ctx = new AudioContext()
   }
-  // Resume in case the context was suspended (e.g. tab switch).
-  // resume() is async; fire-and-forget with error suppression. Callers must
-  // guard against a still-suspended context (currentTime frozen) themselves.
   if (_ctx.state === 'suspended') {
-    _ctx.resume().catch(() => {/* ignore */})
+    await _ctx.resume()
   }
   return _ctx
 }
@@ -77,12 +74,16 @@ function scheduleOscillator(
   attackTime: number,
   decayTime: number,
 ): void {
+  // Guard: if attackTime alone exceeds duration, clamp both to avoid negative
+  // decayTime and out-of-order Web Audio automation events.
+  if (attackTime >= duration) {
+    attackTime = duration * 0.5
+    decayTime = duration * 0.5
+  }
+
   // Guard: if attackTime + decayTime exceed duration, clamp decayTime to avoid
   // an abrupt oscillator stop mid-ramp that would produce an audible click/pop.
   if (attackTime + decayTime > duration) {
-    console.warn(
-      `scheduleOscillator: attackTime (${attackTime}) + decayTime (${decayTime}) exceeds duration (${duration}); clamping decayTime to avoid click`,
-    )
     decayTime = duration - attackTime
   }
 
@@ -115,9 +116,9 @@ function scheduleOscillator(
 /**
  * Correct note: bright chime — two harmonics of a high C, quick attack.
  */
-export function playCorrect(): void {
+export async function playCorrect(): Promise<void> {
   if (_muted) return
-  const ctx = getContext()
+  const ctx = await getContext()
   const now = ctx.currentTime
 
   // Fundamental ~1047 Hz (C6) + octave up
@@ -128,9 +129,9 @@ export function playCorrect(): void {
 /**
  * Wrong note: harsh buzz — low sawtooth with a short sharp envelope.
  */
-export function playWrong(): void {
+export async function playWrong(): Promise<void> {
   if (_muted) return
-  const ctx = getContext()
+  const ctx = await getContext()
   const now = ctx.currentTime
 
   scheduleOscillator(ctx, 'sawtooth', 110, 80, now, 0.3, 0.4, 0.005, 0.28)
@@ -140,9 +141,9 @@ export function playWrong(): void {
 /**
  * Enemy death: descending frequency sweep — satisfying "pew" / dissolve.
  */
-export function playEnemyDeath(): void {
+export async function playEnemyDeath(): Promise<void> {
   if (_muted) return
-  const ctx = getContext()
+  const ctx = await getContext()
   const now = ctx.currentTime
 
   scheduleOscillator(ctx, 'sine', 600, 120, now, 0.4, 0.4, 0.005, 0.38)
@@ -152,9 +153,9 @@ export function playEnemyDeath(): void {
 /**
  * Wave start: ascending two-tone fanfare.
  */
-export function playWaveStart(): void {
+export async function playWaveStart(): Promise<void> {
   if (_muted) return
-  const ctx = getContext()
+  const ctx = await getContext()
   const now = ctx.currentTime
 
   // Three quick ascending notes
@@ -166,9 +167,9 @@ export function playWaveStart(): void {
 /**
  * Wave end / wave clear: uplifting three-note chord swell.
  */
-export function playWaveEnd(): void {
+export async function playWaveEnd(): Promise<void> {
   if (_muted) return
-  const ctx = getContext()
+  const ctx = await getContext()
   const now = ctx.currentTime
 
   // Major triad
@@ -180,9 +181,9 @@ export function playWaveEnd(): void {
 /**
  * Game over: descending slow tone — heavy and final.
  */
-export function playGameOver(): void {
+export async function playGameOver(): Promise<void> {
   if (_muted) return
-  const ctx = getContext()
+  const ctx = await getContext()
   const now = ctx.currentTime
 
   // Slow descending sweep with longer decay
