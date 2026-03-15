@@ -8,6 +8,7 @@
 
 let ctx: AudioContext | null = null
 let muted = false
+let masterVolume = 0.5
 
 function getContext(): AudioContext {
   if (!ctx) {
@@ -42,10 +43,11 @@ function playTone(
   osc.type = type
   osc.frequency.setValueAtTime(frequency, now)
 
+  const v = volume * masterVolume
   gain.gain.setValueAtTime(0, now)
-  gain.gain.linearRampToValueAtTime(volume, now + attack)
-  gain.gain.setValueAtTime(volume, now + attack)
-  gain.gain.linearRampToValueAtTime(volume * 0.6, now + attack + sustain)
+  gain.gain.linearRampToValueAtTime(v, now + attack)
+  gain.gain.setValueAtTime(v, now + attack)
+  gain.gain.linearRampToValueAtTime(v * 0.6, now + attack + sustain)
   gain.gain.linearRampToValueAtTime(0, now + attack + sustain + release)
 
   osc.connect(gain)
@@ -72,7 +74,8 @@ function playNoise(duration: number, volume = 0.15): void {
   source.buffer = buffer
 
   const gain = ac.createGain()
-  gain.gain.setValueAtTime(volume, now)
+  const v = volume * masterVolume
+  gain.gain.setValueAtTime(v, now)
   gain.gain.linearRampToValueAtTime(0, now + duration)
 
   source.connect(gain)
@@ -181,4 +184,12 @@ export function setSfxMuted(value: boolean): void {
 
 export function isSfxMuted(): boolean {
   return muted
+}
+
+export function setSfxMasterVolume(value: number): void {
+  masterVolume = Math.max(0, Math.min(1, value))
+}
+
+export function getSfxMasterVolume(): number {
+  return masterVolume
 }
