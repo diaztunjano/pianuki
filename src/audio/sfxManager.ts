@@ -4,19 +4,41 @@
  * Singleton module that lazily creates an AudioContext on first play call
  * (respects the browser's user-gesture requirement). All sounds are
  * synthesized with OscillatorNode + GainNode envelopes — no audio files.
+ *
+ * Reads sfxEnabled / sfxVolume from the Zustand store so that muting SFX
+ * does not affect microphone input.
  */
 
+import { useBoundStore } from '../stores'
+
 let ctx: AudioContext | null = null
+let masterGain: GainNode | null = null
 
 function getContext(): AudioContext {
   if (!ctx) {
     ctx = new AudioContext()
+    masterGain = ctx.createGain()
+    masterGain.connect(ctx.destination)
   }
   // Resume if suspended (browsers suspend until user gesture)
   if (ctx.state === 'suspended') {
     void ctx.resume()
   }
   return ctx
+}
+
+function getMasterGain(): GainNode {
+  getContext() // ensure initialised
+  return masterGain!
+}
+
+/** Returns false (and skips sound) when SFX is disabled. Also syncs master volume. */
+function shouldPlay(): boolean {
+  const { sfxEnabled, sfxVolume } = useBoundStore.getState().settings
+  if (!sfxEnabled) return false
+  const mg = getMasterGain()
+  mg.gain.value = sfxVolume
+  return true
 }
 
 // ---------------------------------------------------------------------------
@@ -46,7 +68,7 @@ function playTone(
   gain.gain.linearRampToValueAtTime(0, startTime + duration)
 
   osc.connect(gain)
-  gain.connect(ac.destination)
+  gain.connect(getMasterGain())
 
   osc.start(startTime)
   osc.stop(startTime + duration)
@@ -74,7 +96,7 @@ function playNoiseBurst(
   gain.gain.linearRampToValueAtTime(0, startTime + duration)
 
   source.connect(gain)
-  gain.connect(ac.destination)
+  gain.connect(getMasterGain())
 
   source.start(startTime)
   source.stop(startTime + duration)
@@ -86,6 +108,7 @@ function playNoiseBurst(
 
 /** Bright ascending chime — correct note hit. */
 export function playCorrect(): void {
+  if (!shouldPlay()) return
   const ac = getContext()
   const t = ac.currentTime
   // Two-note ascending arpeggio (C6 → E6)
@@ -95,6 +118,7 @@ export function playCorrect(): void {
 
 /** Low distorted buzz — wrong note. */
 export function playWrong(): void {
+  if (!shouldPlay()) return
   const ac = getContext()
   const t = ac.currentTime
   // Dissonant square wave + noise
@@ -105,6 +129,7 @@ export function playWrong(): void {
 
 /** Quick descending pop — enemy defeated. */
 export function playEnemyDeath(): void {
+  if (!shouldPlay()) return
   const ac = getContext()
   const t = ac.currentTime
 
@@ -119,13 +144,14 @@ export function playEnemyDeath(): void {
   gain.gain.linearRampToValueAtTime(0, t + 0.25)
 
   osc.connect(gain)
-  gain.connect(ac.destination)
+  gain.connect(getMasterGain())
   osc.start(t)
   osc.stop(t + 0.25)
 }
 
 /** Rising three-note fanfare — wave starting. */
 export function playWaveStart(): void {
+  if (!shouldPlay()) return
   const ac = getContext()
   const t = ac.currentTime
   // C5 → E5 → G5 quick arpeggio
@@ -136,6 +162,7 @@ export function playWaveStart(): void {
 
 /** Descending resolution — wave cleared. */
 export function playWaveEnd(): void {
+  if (!shouldPlay()) return
   const ac = getContext()
   const t = ac.currentTime
   // G5 → E5 → C5 → C6 (triumphant resolution)
@@ -147,6 +174,7 @@ export function playWaveEnd(): void {
 
 /** Dramatic low drone + dissonance — game over. */
 export function playGameOver(): void {
+  if (!shouldPlay()) return
   const ac = getContext()
   const t = ac.currentTime
   // Low drone
@@ -161,7 +189,7 @@ export function playGameOver(): void {
   gain.gain.setValueAtTime(0.2, t)
   gain.gain.linearRampToValueAtTime(0, t + 1.2)
   osc.connect(gain)
-  gain.connect(ac.destination)
+  gain.connect(getMasterGain())
   osc.start(t)
   osc.stop(t + 1.2)
   // Noise burst for impact
