@@ -10,6 +10,7 @@ import { MicExplainScreen } from './MicExplainScreen'
 import { useMidiInput } from '../hooks/useMidiInput'
 import { useAudioInput } from '../hooks/useAudioInput'
 import { useBoundStore } from '../stores'
+import { setMuted, setVolume } from '../audio/sfxManager'
 
 // --- AppShell ---
 
@@ -43,6 +44,14 @@ export function AppShell() {
   // Intentionally NOT persisted — explanation shows once per session when permission is 'prompt'.
   // After browser grants permission, subsequent page loads return 'granted' and skip it entirely.
   const [micExplained, setMicExplained] = useState(false)
+
+  // Sync persisted SFX settings to the sfxManager module on mount & change
+  const sfxEnabled = useBoundStore((s) => s.settings.sfxEnabled)
+  const sfxVolume = useBoundStore((s) => s.settings.sfxVolume)
+  useEffect(() => {
+    setMuted(!sfxEnabled)
+    setVolume(sfxVolume)
+  }, [sfxEnabled, sfxVolume])
 
   // MIDI: no user gesture required — activates immediately on mount
   useMidiInput()

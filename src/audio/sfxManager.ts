@@ -17,6 +17,7 @@
 
 let ctx: AudioContext | null = null
 let muted = false
+let masterVolume = 0.5
 
 function getContext(): AudioContext {
   if (!ctx || ctx.state === 'closed') {
@@ -39,6 +40,14 @@ export function setMuted(value: boolean): void {
 
 export function isMuted(): boolean {
   return muted
+}
+
+export function setVolume(value: number): void {
+  masterVolume = Math.max(0, Math.min(1, value))
+}
+
+export function getVolume(): number {
+  return masterVolume
 }
 
 // ---------------------------------------------------------------------------
@@ -78,9 +87,10 @@ function playTone(ac: AudioContext, params: ToneParams): void {
   osc.type = type
   osc.frequency.setValueAtTime(frequency, now)
 
+  const scaledGain = peakGain * masterVolume
   gain.gain.setValueAtTime(0, now)
-  gain.gain.linearRampToValueAtTime(peakGain, now + attack)
-  gain.gain.setValueAtTime(peakGain, now + attack + sustain)
+  gain.gain.linearRampToValueAtTime(scaledGain, now + attack)
+  gain.gain.setValueAtTime(scaledGain, now + attack + sustain)
   gain.gain.linearRampToValueAtTime(0, now + attack + sustain + decay)
 
   osc.connect(gain)
@@ -122,7 +132,7 @@ export function playEnemyDeath(): void {
   osc.frequency.setValueAtTime(600, now)
   osc.frequency.exponentialRampToValueAtTime(200, now + 0.15)
 
-  gain.gain.setValueAtTime(0.2, now)
+  gain.gain.setValueAtTime(0.2 * masterVolume, now)
   gain.gain.linearRampToValueAtTime(0, now + 0.2)
 
   osc.connect(gain)
