@@ -74,22 +74,28 @@ async function playTone(params: ToneParams): Promise<void> {
 /** Bright chime — two harmonious tones for a correct note hit */
 export async function playCorrect(): Promise<void> {
   if (!getSfxSettings().sfxEnabled) return
-  await playTone({ frequency: 880, type: 'sine', attackMs: 5, decayMs: 200, peakGain: 0.3 })
-  playTone({ frequency: 1320, type: 'sine', attackMs: 5, decayMs: 150, peakGain: 0.15 })
+  await Promise.all([
+    playTone({ frequency: 880, type: 'sine', attackMs: 5, decayMs: 200, peakGain: 0.3 }),
+    playTone({ frequency: 1320, type: 'sine', attackMs: 5, decayMs: 150, peakGain: 0.15 }),
+  ])
 }
 
 /** Harsh buzz — low sawtooth for a wrong note */
 export async function playWrong(): Promise<void> {
   if (!getSfxSettings().sfxEnabled) return
-  await playTone({ frequency: 150, type: 'sawtooth', attackMs: 10, decayMs: 250, peakGain: 0.25 })
-  playTone({ frequency: 155, type: 'sawtooth', attackMs: 10, decayMs: 250, peakGain: 0.2 })
+  await Promise.all([
+    playTone({ frequency: 150, type: 'sawtooth', attackMs: 10, decayMs: 250, peakGain: 0.25 }),
+    playTone({ frequency: 155, type: 'sawtooth', attackMs: 10, decayMs: 250, peakGain: 0.2 }),
+  ])
 }
 
 /** Short pop/burst when an enemy is defeated */
 export async function playEnemyDeath(): Promise<void> {
   if (!getSfxSettings().sfxEnabled) return
-  await playTone({ frequency: 600, type: 'triangle', attackMs: 5, decayMs: 120, peakGain: 0.25 })
-  playTone({ frequency: 900, type: 'sine', attackMs: 5, decayMs: 80, peakGain: 0.15 })
+  await Promise.all([
+    playTone({ frequency: 600, type: 'triangle', attackMs: 5, decayMs: 120, peakGain: 0.25 }),
+    playTone({ frequency: 900, type: 'sine', attackMs: 5, decayMs: 80, peakGain: 0.15 }),
+  ])
 }
 
 /** Rising arpeggio to signal a new wave starting */
