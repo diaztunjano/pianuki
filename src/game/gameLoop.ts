@@ -1,6 +1,7 @@
 import { useBoundStore } from '../stores'
 import { isNoteMatch } from './noteMatch'
 import { recordEnemySpawned, recordCorrectHit, recordMiss, computeLevelResult } from './statsTracker'
+import { playCorrect, playWrong, playEnemyDeath, playWaveEnd, playGameOver } from '../audio/sfxManager'
 import type { Enemy } from './enemyTypes'
 
 // Module-level state for wrong-note detection
@@ -49,6 +50,7 @@ export function update(dt: number): void {
   // Step 3: Check if any enemy reached the goal (pathT >= 1.0)
   // Branches on penaltyMode: easy (no damage), normal (HP damage), hard (loop back)
   // -------------------------------------------------------------------
+  const phaseBefore = useBoundStore.getState().gamePhase
   const postMoveState = useBoundStore.getState()
   const { penaltyMode } = postMoveState.settings
   for (const enemy of postMoveState.enemies) {
@@ -82,6 +84,11 @@ export function update(dt: number): void {
     }
   }
 
+  // Play game-over sound if the phase just transitioned to gameover
+  if (phaseBefore !== 'gameover' && useBoundStore.getState().gamePhase === 'gameover') {
+    playGameOver()
+  }
+
   // -------------------------------------------------------------------
   // Step 4: Check note matches — damage enemies that match active notes
   // -------------------------------------------------------------------
@@ -92,7 +99,12 @@ export function update(dt: number): void {
       const hitTimeMs = performance.now()
       const reactionMs = hitTimeMs - enemy.spawnedAtMs
       recordCorrectHit(reactionMs)
+      const hpBefore = enemy.hp
       useBoundStore.getState().damageEnemy(enemy.id, 1)
+      playCorrect()
+      if (hpBefore <= 1) {
+        playEnemyDeath()
+      }
     }
   }
 
@@ -131,6 +143,7 @@ export function update(dt: number): void {
 
   if (wrongNoteDetected) {
     useBoundStore.getState().triggerWrongNote()
+    playWrong()
   }
 
   // -------------------------------------------------------------------
@@ -161,11 +174,13 @@ export function update(dt: number): void {
     if (nextWaveIndex < waveCheckState.totalWaves) {
       // More waves remain — show wave-clear screen
       useBoundStore.setState({ gamePhase: 'wave-clear' })
+      playWaveEnd()
     } else {
       // All waves complete — compute stats and transition to level-complete
       const result = computeLevelResult(waveCheckState.currentLevel)
       useBoundStore.getState().recordLevelComplete(waveCheckState.currentLevel, result)
       useBoundStore.setState({ gamePhase: 'level-complete', lastLevelResult: result })
+      playWaveEnd()
     }
   }
 }

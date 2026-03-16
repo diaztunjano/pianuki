@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { LEVEL_CONFIGS } from '../game/waveConfig'
 import { useBoundStore } from '../stores'
 import { SettingsPanel } from './SettingsPanel'
+import { playWaveStart } from '../audio/sfxManager'
 
 /**
  * Node positions in a zigzag/path-map layout — like Mario World.
@@ -162,7 +163,12 @@ export function LevelSelectScreen() {
                 {/* Circular node button */}
                 <button
                   disabled={!unlocked}
-                  onClick={() => unlocked && startLevel(idx)}
+                  onClick={() => {
+                    if (unlocked) {
+                      startLevel(idx)
+                      playWaveStart()
+                    }
+                  }}
                   className={[
                     'rounded-full border-2 flex items-center justify-center transition-all',
                     'active:scale-95',
