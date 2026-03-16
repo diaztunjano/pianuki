@@ -4,20 +4,45 @@
  * Singleton module that lazily creates an AudioContext on first play call,
  * respecting browser user-gesture requirements. All sounds are synthesized
  * with OscillatorNode + GainNode envelopes — no external audio files needed.
+ *
+ * Reads sfxEnabled / sfxVolume from the Zustand store so that the settings
+ * panel controls all SFX output without affecting mic input.
  */
 
+import { useBoundStore } from '../stores'
+
 let audioCtx: AudioContext | null = null
-let muted = false
+let masterGain: GainNode | null = null
 
 function getContext(): AudioContext {
   if (!audioCtx) {
     audioCtx = new AudioContext()
+    masterGain = audioCtx.createGain()
+    masterGain.connect(audioCtx.destination)
   }
   // Resume if suspended (browsers suspend until user gesture)
   if (audioCtx.state === 'suspended') {
     void audioCtx.resume()
   }
   return audioCtx
+}
+
+function getMasterGain(): GainNode {
+  getContext() // ensure initialised
+  return masterGain!
+}
+
+/** Check store state; returns false (skip play) when SFX is disabled. */
+function shouldPlay(): boolean {
+  const { sfxEnabled } = useBoundStore.getState().settings
+  return sfxEnabled
+}
+
+/** Sync the master gain node with the store's sfxVolume. */
+function syncVolume(): void {
+  const { sfxVolume } = useBoundStore.getState().settings
+  const gain = getMasterGain()
+  gain.gain.setValueAtTime(sfxVolume, getContext().currentTime)
 }
 
 // ---------------------------------------------------------------------------
@@ -34,7 +59,7 @@ function playTone(
   attackTime: number,
   releaseTime: number,
   ctx: AudioContext,
-  destination: AudioNode = ctx.destination,
+  destination: AudioNode = getMasterGain(),
 ): void {
   const osc = ctx.createOscillator()
   const gain = ctx.createGain()
@@ -63,7 +88,8 @@ function playTone(
  * Correct note — bright ascending chime (two quick sine tones).
  */
 export function playCorrect(): void {
-  if (muted) return
+  if (!shouldPlay()) return
+  syncVolume()
   const ctx = getContext()
   const now = ctx.currentTime
 
@@ -75,7 +101,8 @@ export function playCorrect(): void {
  * Wrong note — short low buzz (sawtooth oscillator).
  */
 export function playWrong(): void {
-  if (muted) return
+  if (!shouldPlay()) return
+  syncVolume()
   const ctx = getContext()
   const now = ctx.currentTime
 
@@ -86,9 +113,11 @@ export function playWrong(): void {
  * Enemy death — descending "pop" (sine sweep from high to low).
  */
 export function playEnemyDeath(): void {
-  if (muted) return
+  if (!shouldPlay()) return
+  syncVolume()
   const ctx = getContext()
   const now = ctx.currentTime
+  const dest = getMasterGain()
 
   const osc = ctx.createOscillator()
   const gain = ctx.createGain()
@@ -101,7 +130,7 @@ export function playEnemyDeath(): void {
   gain.gain.linearRampToValueAtTime(0, now + 0.25)
 
   osc.connect(gain)
-  gain.connect(ctx.destination)
+  gain.connect(dest)
   osc.start(now)
   osc.stop(now + 0.25)
 }
@@ -110,7 +139,8 @@ export function playEnemyDeath(): void {
  * Wave start — rising fanfare (three ascending triangle tones).
  */
 export function playWaveStart(): void {
-  if (muted) return
+  if (!shouldPlay()) return
+  syncVolume()
   const ctx = getContext()
   const now = ctx.currentTime
 
@@ -123,7 +153,8 @@ export function playWaveStart(): void {
  * Wave end — triumphant chord (three simultaneous triangle tones with longer sustain).
  */
 export function playWaveEnd(): void {
-  if (muted) return
+  if (!shouldPlay()) return
+  syncVolume()
   const ctx = getContext()
   const now = ctx.currentTime
 
@@ -136,7 +167,8 @@ export function playWaveEnd(): void {
  * Game over — ominous descending sequence (three low sine tones stepping down).
  */
 export function playGameOver(): void {
-  if (muted) return
+  if (!shouldPlay()) return
+  syncVolume()
   const ctx = getContext()
   const now = ctx.currentTime
 
@@ -146,13 +178,13 @@ export function playGameOver(): void {
 }
 
 // ---------------------------------------------------------------------------
-// Mute control
+// Legacy mute control (kept for backward compatibility during transition)
 // ---------------------------------------------------------------------------
 
 export function setSfxMuted(value: boolean): void {
-  muted = value
+  useBoundStore.getState().setSfxEnabled(!value)
 }
 
 export function isSfxMuted(): boolean {
-  return muted
+  return !useBoundStore.getState().settings.sfxEnabled
 }
