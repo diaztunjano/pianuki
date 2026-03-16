@@ -4,7 +4,12 @@
  * Lazily creates an AudioContext on first play call (respects browser
  * user-gesture requirement). All sounds are synthesized with
  * OscillatorNode + GainNode envelopes — no external audio files needed.
+ *
+ * Reads sfxEnabled / sfxVolume from the Zustand store before each play
+ * call so SFX can be muted independently from mic input.
  */
+
+import { useBoundStore } from '../stores'
 
 let audioCtx: AudioContext | null = null
 
@@ -31,8 +36,14 @@ interface ToneParams {
   detune?: number
 }
 
+function getSfxSettings() {
+  const { sfxEnabled, sfxVolume } = useBoundStore.getState().settings
+  return { sfxEnabled, sfxVolume }
+}
+
 function playTone(params: ToneParams): void {
   const ctx = getContext()
+  const { sfxVolume } = getSfxSettings()
   const now = ctx.currentTime
   const attack = params.attackMs / 1000
   const decay = params.decayMs / 1000
@@ -45,8 +56,9 @@ function playTone(params: ToneParams): void {
   }
 
   const gain = ctx.createGain()
+  const scaledPeak = params.peakGain * sfxVolume
   gain.gain.setValueAtTime(0, now)
-  gain.gain.linearRampToValueAtTime(params.peakGain, now + attack)
+  gain.gain.linearRampToValueAtTime(scaledPeak, now + attack)
   gain.gain.exponentialRampToValueAtTime(0.001, now + attack + decay)
 
   osc.connect(gain)
@@ -60,24 +72,29 @@ function playTone(params: ToneParams): void {
 
 /** Bright chime — two harmonious tones for a correct note hit */
 export function playCorrect(): void {
+  if (!getSfxSettings().sfxEnabled) return
   playTone({ frequency: 880, type: 'sine', attackMs: 5, decayMs: 200, peakGain: 0.3 })
   playTone({ frequency: 1320, type: 'sine', attackMs: 5, decayMs: 150, peakGain: 0.15 })
 }
 
 /** Harsh buzz — low sawtooth for a wrong note */
 export function playWrong(): void {
+  if (!getSfxSettings().sfxEnabled) return
   playTone({ frequency: 150, type: 'sawtooth', attackMs: 10, decayMs: 250, peakGain: 0.25 })
   playTone({ frequency: 155, type: 'sawtooth', attackMs: 10, decayMs: 250, peakGain: 0.2 })
 }
 
 /** Short pop/burst when an enemy is defeated */
 export function playEnemyDeath(): void {
+  if (!getSfxSettings().sfxEnabled) return
   playTone({ frequency: 600, type: 'triangle', attackMs: 5, decayMs: 120, peakGain: 0.25 })
   playTone({ frequency: 900, type: 'sine', attackMs: 5, decayMs: 80, peakGain: 0.15 })
 }
 
 /** Rising arpeggio to signal a new wave starting */
 export function playWaveStart(): void {
+  const { sfxEnabled, sfxVolume } = getSfxSettings()
+  if (!sfxEnabled) return
   const ctx = getContext()
   const notes = [523.25, 659.25, 783.99] // C5, E5, G5
   notes.forEach((freq, i) => {
@@ -89,7 +106,7 @@ export function playWaveStart(): void {
 
     const gain = ctx.createGain()
     gain.gain.setValueAtTime(0, now + offset)
-    gain.gain.linearRampToValueAtTime(0.25, now + offset + 0.01)
+    gain.gain.linearRampToValueAtTime(0.25 * sfxVolume, now + offset + 0.01)
     gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.25)
 
     osc.connect(gain)
@@ -101,6 +118,8 @@ export function playWaveStart(): void {
 
 /** Descending resolved chord — wave cleared successfully */
 export function playWaveEnd(): void {
+  const { sfxEnabled, sfxVolume } = getSfxSettings()
+  if (!sfxEnabled) return
   const ctx = getContext()
   const notes = [783.99, 659.25, 523.25] // G5, E5, C5 descending
   notes.forEach((freq, i) => {
@@ -112,7 +131,7 @@ export function playWaveEnd(): void {
 
     const gain = ctx.createGain()
     gain.gain.setValueAtTime(0, now + offset)
-    gain.gain.linearRampToValueAtTime(0.2, now + offset + 0.01)
+    gain.gain.linearRampToValueAtTime(0.2 * sfxVolume, now + offset + 0.01)
     gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.35)
 
     osc.connect(gain)
@@ -124,6 +143,8 @@ export function playWaveEnd(): void {
 
 /** Dramatic low rumble + descending tone for game over */
 export function playGameOver(): void {
+  const { sfxEnabled, sfxVolume } = getSfxSettings()
+  if (!sfxEnabled) return
   // Low rumble
   playTone({ frequency: 80, type: 'sawtooth', attackMs: 20, decayMs: 600, peakGain: 0.3 })
   // Descending whine
@@ -135,7 +156,7 @@ export function playGameOver(): void {
   osc.frequency.exponentialRampToValueAtTime(110, now + 0.8)
 
   const gain = ctx.createGain()
-  gain.gain.setValueAtTime(0.25, now)
+  gain.gain.setValueAtTime(0.25 * sfxVolume, now)
   gain.gain.exponentialRampToValueAtTime(0.001, now + 0.9)
 
   osc.connect(gain)
