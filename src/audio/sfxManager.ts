@@ -44,6 +44,7 @@ function getSfxSettings() {
 async function playTone(params: ToneParams): Promise<void> {
   const ctx = await getContext()
   const { sfxVolume } = getSfxSettings()
+  if (sfxVolume <= 0) return
   const now = ctx.currentTime
   const attack = params.attackMs / 1000
   const decay = params.decayMs / 1000
@@ -94,7 +95,7 @@ export async function playEnemyDeath(): Promise<void> {
 /** Rising arpeggio to signal a new wave starting */
 export async function playWaveStart(): Promise<void> {
   const { sfxEnabled, sfxVolume } = getSfxSettings()
-  if (!sfxEnabled) return
+  if (!sfxEnabled || sfxVolume <= 0) return
   const ctx = await getContext()
   const notes = [523.25, 659.25, 783.99] // C5, E5, G5
   notes.forEach((freq, i) => {
@@ -119,7 +120,7 @@ export async function playWaveStart(): Promise<void> {
 /** Descending resolved chord — wave cleared successfully */
 export async function playWaveEnd(): Promise<void> {
   const { sfxEnabled, sfxVolume } = getSfxSettings()
-  if (!sfxEnabled) return
+  if (!sfxEnabled || sfxVolume <= 0) return
   const ctx = await getContext()
   const notes = [783.99, 659.25, 523.25] // G5, E5, C5 descending
   notes.forEach((freq, i) => {
@@ -144,7 +145,7 @@ export async function playWaveEnd(): Promise<void> {
 /** Dramatic low rumble + descending tone for game over */
 export async function playGameOver(): Promise<void> {
   const { sfxEnabled, sfxVolume } = getSfxSettings()
-  if (!sfxEnabled) return
+  if (!sfxEnabled || sfxVolume <= 0) return
   // Low rumble
   await playTone({ frequency: 80, type: 'sawtooth', attackMs: 20, decayMs: 600, peakGain: 0.3 })
   // Descending whine
