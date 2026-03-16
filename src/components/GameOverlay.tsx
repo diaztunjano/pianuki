@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useBoundStore } from '../stores'
 import { SettingsPanel } from './SettingsPanel'
 import { LevelSummaryOverlay } from './LevelSummaryOverlay'
+import { playWaveStart, playWaveEnd, playGameOver } from '../audio/sfxManager'
 
 /**
  * GameOverlay — renders the appropriate full-screen overlay based on gamePhase.
@@ -29,6 +30,29 @@ export function GameOverlay() {
   const startLevel = useBoundStore((s) => s.startLevel)
   const navigateTo = useBoundStore((s) => s.navigateTo)
   const [showSettings, setShowSettings] = useState(false)
+  const prevPhaseRef = useRef(gamePhase)
+
+  useEffect(() => {
+    const prev = prevPhaseRef.current
+    prevPhaseRef.current = gamePhase
+
+    if (prev === gamePhase) return
+
+    // Wave/level started → play wave start cue
+    if (gamePhase === 'playing' && (prev === 'idle' || prev === 'wave-clear')) {
+      playWaveStart()
+    }
+
+    // Wave cleared or level completed → play wave end cue
+    if (gamePhase === 'wave-clear' || gamePhase === 'level-complete') {
+      playWaveEnd()
+    }
+
+    // Game over
+    if (gamePhase === 'gameover') {
+      playGameOver()
+    }
+  }, [gamePhase])
 
   if (gamePhase === 'playing') return null
 

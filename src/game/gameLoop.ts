@@ -1,6 +1,7 @@
 import { useBoundStore } from '../stores'
 import { isNoteMatch } from './noteMatch'
 import { recordEnemySpawned, recordCorrectHit, recordMiss, computeLevelResult } from './statsTracker'
+import { playCorrect, playWrong, playEnemyDeath } from '../audio/sfxManager'
 import type { Enemy } from './enemyTypes'
 
 // Module-level state for wrong-note detection
@@ -93,6 +94,12 @@ export function update(dt: number): void {
       const reactionMs = hitTimeMs - enemy.spawnedAtMs
       recordCorrectHit(reactionMs)
       useBoundStore.getState().damageEnemy(enemy.id, 1)
+      playCorrect()
+      // Check if the enemy was killed (hp reached 0 → state changed to 'dying')
+      const updated = useBoundStore.getState().enemies.find((e) => e.id === enemy.id)
+      if (updated && updated.state === 'dying') {
+        playEnemyDeath()
+      }
     }
   }
 
@@ -131,6 +138,7 @@ export function update(dt: number): void {
 
   if (wrongNoteDetected) {
     useBoundStore.getState().triggerWrongNote()
+    playWrong()
   }
 
   // -------------------------------------------------------------------
