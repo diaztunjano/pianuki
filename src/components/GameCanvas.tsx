@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useBoundStore } from '../stores'
 import { update } from '../game/gameLoop'
 import { midiNoteToName } from '../lib/noteUtils'
+import { playWaveStart, playWaveEnd, playGameOver } from '../audio/sfxManager'
 import type { Enemy } from '../game/enemyTypes'
 
 // Fixed timestep: 60 updates per second
@@ -297,6 +298,33 @@ export function GameCanvas() {
 
     return () => cancelAnimationFrame(frameId)
   }, []) // Empty deps: starts once on mount, cleans up on unmount
+
+  // Effect 3: Phase-transition SFX — subscribe to gamePhase changes
+  useEffect(() => {
+    let prevPhase = useBoundStore.getState().gamePhase
+
+    const unsub = useBoundStore.subscribe((state) => {
+      const phase = state.gamePhase
+      if (phase === prevPhase) return
+
+      // Wave start: entering 'playing' from anything except 'paused' (resume)
+      if (phase === 'playing' && prevPhase !== 'paused') {
+        playWaveStart()
+      }
+      // Wave end: wave cleared or level completed
+      if (phase === 'wave-clear' || phase === 'level-complete') {
+        playWaveEnd()
+      }
+      // Game over
+      if (phase === 'gameover') {
+        playGameOver()
+      }
+
+      prevPhase = phase
+    })
+
+    return unsub
+  }, [])
 
   return (
     <div ref={containerRef} className="flex-1 overflow-hidden">
