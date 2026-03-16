@@ -35,7 +35,7 @@ function createOsc(
 ): { osc: OscillatorNode; gain: GainNode } {
   const osc = ac.createOscillator()
   osc.type = type
-  osc.frequency.value = frequency
+  osc.frequency.setValueAtTime(frequency, ac.currentTime)
 
   const gain = ac.createGain()
   gain.gain.value = 0
