@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useBoundStore } from '../stores'
 import { SettingsPanel } from './SettingsPanel'
 import { LevelSummaryOverlay } from './LevelSummaryOverlay'
+import { playGameOver, playWaveStart } from '../audio/sfxManager'
 
 /**
  * GameOverlay — renders the appropriate full-screen overlay based on gamePhase.
@@ -29,6 +30,15 @@ export function GameOverlay() {
   const startLevel = useBoundStore((s) => s.startLevel)
   const navigateTo = useBoundStore((s) => s.navigateTo)
   const [showSettings, setShowSettings] = useState(false)
+  const prevPhaseRef = useRef(gamePhase)
+
+  // Play game-over sound exactly once on transition to 'gameover'
+  useEffect(() => {
+    if (gamePhase === 'gameover' && prevPhaseRef.current !== 'gameover') {
+      playGameOver()
+    }
+    prevPhaseRef.current = gamePhase
+  }, [gamePhase])
 
   if (gamePhase === 'playing') return null
 
@@ -137,7 +147,10 @@ export function GameOverlay() {
           <p className="text-xs text-white/30">Upgrades coming soon...</p>
           <button
             className={primaryBtnClass}
-            onClick={() => advanceWave()}
+            onClick={() => {
+              playWaveStart()
+              advanceWave()
+            }}
           >
             Next Wave
           </button>
