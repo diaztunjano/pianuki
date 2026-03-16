@@ -6,6 +6,8 @@
  * with OscillatorNode + GainNode envelopes — no external audio files needed.
  */
 
+import { useBoundStore } from '../stores'
+
 let ctx: AudioContext | null = null
 
 function getContext(): AudioContext {
@@ -20,10 +22,16 @@ function getContext(): AudioContext {
 
 // --- Helpers ---
 
+function getSfxSettings(): { enabled: boolean; volume: number } {
+  const { sfxEnabled, sfxVolume } = useBoundStore.getState().settings
+  return { enabled: sfxEnabled, volume: sfxVolume }
+}
+
 function createOsc(
   ac: AudioContext,
   type: OscillatorType,
   frequency: number,
+  masterGain: GainNode,
 ): { osc: OscillatorNode; gain: GainNode } {
   const osc = ac.createOscillator()
   osc.type = type
@@ -32,20 +40,30 @@ function createOsc(
   const gain = ac.createGain()
   gain.gain.value = 0
   osc.connect(gain)
-  gain.connect(ac.destination)
+  gain.connect(masterGain)
 
   return { osc, gain }
+}
+
+function createMasterGain(ac: AudioContext, volume: number): GainNode {
+  const master = ac.createGain()
+  master.gain.value = volume
+  master.connect(ac.destination)
+  return master
 }
 
 // --- Sound Definitions ---
 
 /** Pleasant two-tone chime for correct note */
 export function playCorrect(): void {
+  const { enabled, volume } = getSfxSettings()
+  if (!enabled) return
   const ac = getContext()
   const now = ac.currentTime
+  const master = createMasterGain(ac, volume)
 
   // First tone — C6 (1046 Hz)
-  const { osc: o1, gain: g1 } = createOsc(ac, 'sine', 1046.5)
+  const { osc: o1, gain: g1 } = createOsc(ac, 'sine', 1046.5, master)
   g1.gain.setValueAtTime(0, now)
   g1.gain.linearRampToValueAtTime(0.3, now + 0.02)
   g1.gain.exponentialRampToValueAtTime(0.001, now + 0.25)
@@ -53,7 +71,7 @@ export function playCorrect(): void {
   o1.stop(now + 0.25)
 
   // Second tone — E6 (1318 Hz), slightly delayed
-  const { osc: o2, gain: g2 } = createOsc(ac, 'sine', 1318.5)
+  const { osc: o2, gain: g2 } = createOsc(ac, 'sine', 1318.5, master)
   g2.gain.setValueAtTime(0, now + 0.08)
   g2.gain.linearRampToValueAtTime(0.25, now + 0.1)
   g2.gain.exponentialRampToValueAtTime(0.001, now + 0.35)
@@ -63,10 +81,13 @@ export function playCorrect(): void {
 
 /** Harsh buzz for wrong note */
 export function playWrong(): void {
+  const { enabled, volume } = getSfxSettings()
+  if (!enabled) return
   const ac = getContext()
   const now = ac.currentTime
+  const master = createMasterGain(ac, volume)
 
-  const { osc, gain } = createOsc(ac, 'sawtooth', 110)
+  const { osc, gain } = createOsc(ac, 'sawtooth', 110, master)
   gain.gain.setValueAtTime(0, now)
   gain.gain.linearRampToValueAtTime(0.2, now + 0.01)
   gain.gain.linearRampToValueAtTime(0.2, now + 0.12)
@@ -77,10 +98,13 @@ export function playWrong(): void {
 
 /** Quick descending pop for enemy death */
 export function playEnemyDeath(): void {
+  const { enabled, volume } = getSfxSettings()
+  if (!enabled) return
   const ac = getContext()
   const now = ac.currentTime
+  const master = createMasterGain(ac, volume)
 
-  const { osc, gain } = createOsc(ac, 'sine', 800)
+  const { osc, gain } = createOsc(ac, 'sine', 800, master)
   osc.frequency.exponentialRampToValueAtTime(200, now + 0.15)
   gain.gain.setValueAtTime(0, now)
   gain.gain.linearRampToValueAtTime(0.25, now + 0.01)
@@ -91,13 +115,16 @@ export function playEnemyDeath(): void {
 
 /** Ascending three-note fanfare for wave start */
 export function playWaveStart(): void {
+  const { enabled, volume } = getSfxSettings()
+  if (!enabled) return
   const ac = getContext()
   const now = ac.currentTime
+  const master = createMasterGain(ac, volume)
 
   const notes = [523.25, 659.25, 783.99] // C5, E5, G5
   notes.forEach((freq, i) => {
     const offset = i * 0.1
-    const { osc, gain } = createOsc(ac, 'triangle', freq)
+    const { osc, gain } = createOsc(ac, 'triangle', freq, master)
     gain.gain.setValueAtTime(0, now + offset)
     gain.gain.linearRampToValueAtTime(0.2, now + offset + 0.02)
     gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.25)
@@ -108,13 +135,16 @@ export function playWaveStart(): void {
 
 /** Resolving chord for wave end */
 export function playWaveEnd(): void {
+  const { enabled, volume } = getSfxSettings()
+  if (!enabled) return
   const ac = getContext()
   const now = ac.currentTime
+  const master = createMasterGain(ac, volume)
 
   // C major chord: C5, E5, G5 played simultaneously with longer sustain
   const freqs = [523.25, 659.25, 783.99]
   freqs.forEach((freq) => {
-    const { osc, gain } = createOsc(ac, 'sine', freq)
+    const { osc, gain } = createOsc(ac, 'sine', freq, master)
     gain.gain.setValueAtTime(0, now)
     gain.gain.linearRampToValueAtTime(0.15, now + 0.03)
     gain.gain.linearRampToValueAtTime(0.12, now + 0.3)
@@ -126,11 +156,14 @@ export function playWaveEnd(): void {
 
 /** Ominous descending tone for game over */
 export function playGameOver(): void {
+  const { enabled, volume } = getSfxSettings()
+  if (!enabled) return
   const ac = getContext()
   const now = ac.currentTime
+  const master = createMasterGain(ac, volume)
 
   // Low descending tone
-  const { osc: o1, gain: g1 } = createOsc(ac, 'sawtooth', 220)
+  const { osc: o1, gain: g1 } = createOsc(ac, 'sawtooth', 220, master)
   o1.frequency.exponentialRampToValueAtTime(55, now + 0.8)
   g1.gain.setValueAtTime(0, now)
   g1.gain.linearRampToValueAtTime(0.15, now + 0.03)
@@ -140,7 +173,7 @@ export function playGameOver(): void {
   o1.stop(now + 0.9)
 
   // Dissonant minor second layer
-  const { osc: o2, gain: g2 } = createOsc(ac, 'sine', 233.08)
+  const { osc: o2, gain: g2 } = createOsc(ac, 'sine', 233.08, master)
   o2.frequency.exponentialRampToValueAtTime(58.27, now + 0.8)
   g2.gain.setValueAtTime(0, now)
   g2.gain.linearRampToValueAtTime(0.1, now + 0.03)
