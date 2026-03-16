@@ -8,6 +8,7 @@
 
 let ctx: AudioContext | null = null;
 let muted = false;
+let volume = 0.5;
 
 function getContext(): AudioContext {
   if (!ctx) {
@@ -34,6 +35,15 @@ export function isSfxMuted(): boolean {
   return muted;
 }
 
+/** Set the master volume for all SFX (0–1). */
+export function setSfxVolume(value: number): void {
+  volume = Math.max(0, Math.min(1, value));
+}
+
+export function getSfxVolume(): number {
+  return volume;
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -51,7 +61,8 @@ function osc(
   const g = ac.createGain();
   o.type = type;
   o.frequency.value = frequency;
-  g.gain.setValueAtTime(gain, startTime);
+  const scaledGain = gain * volume;
+  g.gain.setValueAtTime(scaledGain, startTime);
   g.gain.linearRampToValueAtTime(0, stopTime);
   o.connect(g).connect(dest);
   o.start(startTime);
@@ -95,7 +106,7 @@ export function playEnemyDeath(): void {
   o.type = 'sine';
   o.frequency.setValueAtTime(600, t);
   o.frequency.exponentialRampToValueAtTime(100, t + 0.3);
-  g.gain.setValueAtTime(0.25, t);
+  g.gain.setValueAtTime(0.25 * volume, t);
   g.gain.linearRampToValueAtTime(0, t + 0.35);
   o.connect(g).connect(ac.destination);
   o.start(t);
