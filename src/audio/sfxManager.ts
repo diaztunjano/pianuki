@@ -13,13 +13,13 @@ import { useBoundStore } from '../stores'
 
 let audioCtx: AudioContext | null = null
 
-function getContext(): AudioContext {
+async function getContext(): Promise<AudioContext> {
   if (!audioCtx) {
     audioCtx = new AudioContext()
   }
   // Resume if suspended (browsers suspend until user gesture)
   if (audioCtx.state === 'suspended') {
-    void audioCtx.resume()
+    await audioCtx.resume()
   }
   return audioCtx
 }
@@ -41,8 +41,8 @@ function getSfxSettings() {
   return { sfxEnabled, sfxVolume }
 }
 
-function playTone(params: ToneParams): void {
-  const ctx = getContext()
+async function playTone(params: ToneParams): Promise<void> {
+  const ctx = await getContext()
   const { sfxVolume } = getSfxSettings()
   const now = ctx.currentTime
   const attack = params.attackMs / 1000
@@ -71,31 +71,31 @@ function playTone(params: ToneParams): void {
 // --- Public API ---
 
 /** Bright chime — two harmonious tones for a correct note hit */
-export function playCorrect(): void {
+export async function playCorrect(): Promise<void> {
   if (!getSfxSettings().sfxEnabled) return
-  playTone({ frequency: 880, type: 'sine', attackMs: 5, decayMs: 200, peakGain: 0.3 })
+  await playTone({ frequency: 880, type: 'sine', attackMs: 5, decayMs: 200, peakGain: 0.3 })
   playTone({ frequency: 1320, type: 'sine', attackMs: 5, decayMs: 150, peakGain: 0.15 })
 }
 
 /** Harsh buzz — low sawtooth for a wrong note */
-export function playWrong(): void {
+export async function playWrong(): Promise<void> {
   if (!getSfxSettings().sfxEnabled) return
-  playTone({ frequency: 150, type: 'sawtooth', attackMs: 10, decayMs: 250, peakGain: 0.25 })
+  await playTone({ frequency: 150, type: 'sawtooth', attackMs: 10, decayMs: 250, peakGain: 0.25 })
   playTone({ frequency: 155, type: 'sawtooth', attackMs: 10, decayMs: 250, peakGain: 0.2 })
 }
 
 /** Short pop/burst when an enemy is defeated */
-export function playEnemyDeath(): void {
+export async function playEnemyDeath(): Promise<void> {
   if (!getSfxSettings().sfxEnabled) return
-  playTone({ frequency: 600, type: 'triangle', attackMs: 5, decayMs: 120, peakGain: 0.25 })
+  await playTone({ frequency: 600, type: 'triangle', attackMs: 5, decayMs: 120, peakGain: 0.25 })
   playTone({ frequency: 900, type: 'sine', attackMs: 5, decayMs: 80, peakGain: 0.15 })
 }
 
 /** Rising arpeggio to signal a new wave starting */
-export function playWaveStart(): void {
+export async function playWaveStart(): Promise<void> {
   const { sfxEnabled, sfxVolume } = getSfxSettings()
   if (!sfxEnabled) return
-  const ctx = getContext()
+  const ctx = await getContext()
   const notes = [523.25, 659.25, 783.99] // C5, E5, G5
   notes.forEach((freq, i) => {
     const now = ctx.currentTime
@@ -117,10 +117,10 @@ export function playWaveStart(): void {
 }
 
 /** Descending resolved chord — wave cleared successfully */
-export function playWaveEnd(): void {
+export async function playWaveEnd(): Promise<void> {
   const { sfxEnabled, sfxVolume } = getSfxSettings()
   if (!sfxEnabled) return
-  const ctx = getContext()
+  const ctx = await getContext()
   const notes = [783.99, 659.25, 523.25] // G5, E5, C5 descending
   notes.forEach((freq, i) => {
     const now = ctx.currentTime
@@ -142,13 +142,13 @@ export function playWaveEnd(): void {
 }
 
 /** Dramatic low rumble + descending tone for game over */
-export function playGameOver(): void {
+export async function playGameOver(): Promise<void> {
   const { sfxEnabled, sfxVolume } = getSfxSettings()
   if (!sfxEnabled) return
   // Low rumble
-  playTone({ frequency: 80, type: 'sawtooth', attackMs: 20, decayMs: 600, peakGain: 0.3 })
+  await playTone({ frequency: 80, type: 'sawtooth', attackMs: 20, decayMs: 600, peakGain: 0.3 })
   // Descending whine
-  const ctx = getContext()
+  const ctx = await getContext()
   const now = ctx.currentTime
   const osc = ctx.createOscillator()
   osc.type = 'sine'
