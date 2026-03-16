@@ -2,6 +2,7 @@ import { useBoundStore } from '../stores'
 import { isNoteMatch } from './noteMatch'
 import { recordEnemySpawned, recordCorrectHit, recordMiss, computeLevelResult } from './statsTracker'
 import type { Enemy } from './enemyTypes'
+import { playCorrect, playWrong, playEnemyDeath, playWaveEnd, playGameOver } from '../audio/sfxManager'
 
 // Module-level state for wrong-note detection
 // Tracks the timestamp of the last NoteOn event we already processed
@@ -49,6 +50,7 @@ export function update(dt: number): void {
   // Step 3: Check if any enemy reached the goal (pathT >= 1.0)
   // Branches on penaltyMode: easy (no damage), normal (HP damage), hard (loop back)
   // -------------------------------------------------------------------
+  const phaseBefore = useBoundStore.getState().gamePhase
   const postMoveState = useBoundStore.getState()
   const { penaltyMode } = postMoveState.settings
   for (const enemy of postMoveState.enemies) {
@@ -82,6 +84,11 @@ export function update(dt: number): void {
     }
   }
 
+  // Play game over sound if phase just transitioned
+  if (phaseBefore === 'playing' && useBoundStore.getState().gamePhase === 'gameover') {
+    playGameOver()
+  }
+
   // -------------------------------------------------------------------
   // Step 4: Check note matches — damage enemies that match active notes
   // -------------------------------------------------------------------
@@ -93,6 +100,12 @@ export function update(dt: number): void {
       const reactionMs = hitTimeMs - enemy.spawnedAtMs
       recordCorrectHit(reactionMs)
       useBoundStore.getState().damageEnemy(enemy.id, 1)
+      playCorrect()
+      // Check if the enemy was killed by this hit
+      const updatedEnemy = useBoundStore.getState().enemies.find((e) => e.id === enemy.id)
+      if (updatedEnemy && updatedEnemy.state === 'dying') {
+        playEnemyDeath()
+      }
     }
   }
 
@@ -131,6 +144,7 @@ export function update(dt: number): void {
 
   if (wrongNoteDetected) {
     useBoundStore.getState().triggerWrongNote()
+    playWrong()
   }
 
   // -------------------------------------------------------------------
@@ -161,11 +175,13 @@ export function update(dt: number): void {
     if (nextWaveIndex < waveCheckState.totalWaves) {
       // More waves remain — show wave-clear screen
       useBoundStore.setState({ gamePhase: 'wave-clear' })
+      playWaveEnd()
     } else {
       // All waves complete — compute stats and transition to level-complete
       const result = computeLevelResult(waveCheckState.currentLevel)
       useBoundStore.getState().recordLevelComplete(waveCheckState.currentLevel, result)
       useBoundStore.setState({ gamePhase: 'level-complete', lastLevelResult: result })
+      playWaveEnd()
     }
   }
 }
