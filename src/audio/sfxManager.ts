@@ -32,10 +32,10 @@ function getMasterGain(): GainNode {
   return masterGain!
 }
 
-/** Check store state; returns false (skip play) when SFX is disabled. */
+/** Check store state; returns false (skip play) when SFX is disabled or volume is zero. */
 function shouldPlay(): boolean {
-  const { sfxEnabled } = useBoundStore.getState().settings
-  return sfxEnabled
+  const { sfxEnabled, sfxVolume } = useBoundStore.getState().settings
+  return sfxEnabled && sfxVolume > 0
 }
 
 /** Sync the master gain node with the store's sfxVolume. */
