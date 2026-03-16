@@ -2,6 +2,8 @@
 // No external audio files required. AudioContext is created lazily on first
 // play call to respect the browser's user-gesture requirement.
 
+import { useBoundStore } from '../stores'
+
 let ctx: AudioContext | null = null
 
 function getContext(): AudioContext {
@@ -18,6 +20,12 @@ function getContext(): AudioContext {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/** Read the SFX volume multiplier from the store (0 when muted). */
+function sfxGain(): number {
+  const { sfxEnabled, sfxVolume } = useBoundStore.getState().settings
+  return sfxEnabled ? sfxVolume : 0
+}
 
 /** Schedule an oscillator → gain envelope and auto-disconnect after release. */
 function playTone(
@@ -89,10 +97,12 @@ function playSequence(
 
 /** Correct note hit — bright ascending chime (C6 → E6). */
 export function playCorrect(): void {
+  const g = sfxGain()
+  if (g === 0) return
   playSequence(
     [
-      { freq: 1047, type: 'sine', dur: 80, vol: 0.25 },  // C6
-      { freq: 1319, type: 'sine', dur: 120, vol: 0.2 },  // E6
+      { freq: 1047, type: 'sine', dur: 80, vol: 0.25 * g },  // C6
+      { freq: 1319, type: 'sine', dur: 120, vol: 0.2 * g },  // E6
     ],
     70,
   )
@@ -100,8 +110,11 @@ export function playCorrect(): void {
 
 /** Wrong note — short dissonant buzz. */
 export function playWrong(): void {
+  const g = sfxGain()
+  if (g === 0) return
   const ac = getContext()
   const now = ac.currentTime
+  const vol = 0.15 * g
 
   // Two detuned square waves for a harsh buzz
   for (const freq of [150, 157]) {
@@ -111,8 +124,8 @@ export function playWrong(): void {
 
     const gain = ac.createGain()
     gain.gain.setValueAtTime(0, now)
-    gain.gain.linearRampToValueAtTime(0.15, now + 0.01)
-    gain.gain.setValueAtTime(0.15, now + 0.12)
+    gain.gain.linearRampToValueAtTime(vol, now + 0.01)
+    gain.gain.setValueAtTime(vol, now + 0.12)
     gain.gain.linearRampToValueAtTime(0, now + 0.2)
 
     osc.connect(gain)
@@ -124,10 +137,12 @@ export function playWrong(): void {
 
 /** Enemy defeated — quick descending pop (G5 → C5). */
 export function playEnemyDeath(): void {
+  const g = sfxGain()
+  if (g === 0) return
   playSequence(
     [
-      { freq: 784, type: 'triangle', dur: 60, vol: 0.2 },  // G5
-      { freq: 523, type: 'triangle', dur: 100, vol: 0.15 }, // C5
+      { freq: 784, type: 'triangle', dur: 60, vol: 0.2 * g },  // G5
+      { freq: 523, type: 'triangle', dur: 100, vol: 0.15 * g }, // C5
     ],
     50,
   )
@@ -135,11 +150,13 @@ export function playEnemyDeath(): void {
 
 /** Wave start — rising fanfare (C5 → E5 → G5). */
 export function playWaveStart(): void {
+  const g = sfxGain()
+  if (g === 0) return
   playSequence(
     [
-      { freq: 523, type: 'sine', dur: 100, vol: 0.2 },  // C5
-      { freq: 659, type: 'sine', dur: 100, vol: 0.2 },  // E5
-      { freq: 784, type: 'sine', dur: 150, vol: 0.25 }, // G5
+      { freq: 523, type: 'sine', dur: 100, vol: 0.2 * g },  // C5
+      { freq: 659, type: 'sine', dur: 100, vol: 0.2 * g },  // E5
+      { freq: 784, type: 'sine', dur: 150, vol: 0.25 * g }, // G5
     ],
     120,
   )
@@ -147,12 +164,14 @@ export function playWaveStart(): void {
 
 /** Wave end / clear — triumphant arpeggio (G5 → B5 → D6 → G6). */
 export function playWaveEnd(): void {
+  const g = sfxGain()
+  if (g === 0) return
   playSequence(
     [
-      { freq: 784, type: 'sine', dur: 100, vol: 0.2 },   // G5
-      { freq: 988, type: 'sine', dur: 100, vol: 0.2 },   // B5
-      { freq: 1175, type: 'sine', dur: 100, vol: 0.2 },  // D6
-      { freq: 1568, type: 'sine', dur: 200, vol: 0.25 }, // G6
+      { freq: 784, type: 'sine', dur: 100, vol: 0.2 * g },   // G5
+      { freq: 988, type: 'sine', dur: 100, vol: 0.2 * g },   // B5
+      { freq: 1175, type: 'sine', dur: 100, vol: 0.2 * g },  // D6
+      { freq: 1568, type: 'sine', dur: 200, vol: 0.25 * g }, // G6
     ],
     100,
   )
@@ -160,11 +179,13 @@ export function playWaveEnd(): void {
 
 /** Game over — descending minor tones (E4 → C4 → A3) with longer decay. */
 export function playGameOver(): void {
+  const g = sfxGain()
+  if (g === 0) return
   playSequence(
     [
-      { freq: 330, type: 'sawtooth', dur: 200, vol: 0.15 },  // E4
-      { freq: 262, type: 'sawtooth', dur: 200, vol: 0.15 },  // C4
-      { freq: 220, type: 'sawtooth', dur: 400, vol: 0.12 },  // A3
+      { freq: 330, type: 'sawtooth', dur: 200, vol: 0.15 * g },  // E4
+      { freq: 262, type: 'sawtooth', dur: 200, vol: 0.15 * g },  // C4
+      { freq: 220, type: 'sawtooth', dur: 400, vol: 0.12 * g },  // A3
     ],
     250,
   )
