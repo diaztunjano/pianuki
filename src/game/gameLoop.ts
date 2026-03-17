@@ -93,11 +93,11 @@ export function update(dt: number): void {
       const hitTimeMs = performance.now()
       const reactionMs = hitTimeMs - enemy.spawnedAtMs
       recordCorrectHit(reactionMs)
-      playCorrect()
       useBoundStore.getState().damageEnemy(enemy.id, 1)
-      // Check if enemy was killed by this hit
+      // Only play chime on the killing blow to avoid double-chime on multi-HP enemies
       const updatedEnemy = useBoundStore.getState().enemies.find((e) => e.id === enemy.id)
       if (updatedEnemy && updatedEnemy.state === 'dying') {
+        playCorrect()
         playEnemyDeath()
       }
     }
