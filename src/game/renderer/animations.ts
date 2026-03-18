@@ -84,6 +84,12 @@ function tickAndDrawParticles(ctx: CanvasRenderingContext2D): void {
   ctx.globalAlpha = 1
 }
 
+/** Clear all animation state (call on game reset / level start). */
+export function clearAnimationState(): void {
+  activeEffects.clear()
+  spawnedIds.clear()
+}
+
 // -----------------------------------------------------------------------
 // Main draw function
 // -----------------------------------------------------------------------
