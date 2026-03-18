@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { useBoundStore } from '../stores'
 import { midiNoteToName } from '../lib/noteUtils'
 
@@ -65,11 +66,11 @@ export function VirtualKeyboard() {
 
   const totalWhiteKeys = whiteKeys.length
 
-  const hintStyle: React.CSSProperties = {
+  const hintStyle: CSSProperties = {
     animation: 'hint-pulse 1.2s ease-in-out infinite',
   }
 
-  const getWhiteKeyStyle = (midi: number): { className: string; style?: React.CSSProperties } => {
+  const getWhiteKeyStyle = (midi: number): { className: string; style?: CSSProperties } => {
     const isActive = activeNotes.has(midi)
     const isTarget = targetNotes.has(midi)
     if (isActive && isTarget) return { className: 'bg-emerald-400', style: hintStyle }
@@ -78,7 +79,7 @@ export function VirtualKeyboard() {
     return { className: 'bg-white' }
   }
 
-  const getBlackKeyStyle = (midi: number): { className: string; style?: React.CSSProperties } => {
+  const getBlackKeyStyle = (midi: number): { className: string; style?: CSSProperties } => {
     const isActive = activeNotes.has(midi)
     const isTarget = targetNotes.has(midi)
     if (isActive && isTarget) return { className: 'bg-emerald-500', style: hintStyle }
