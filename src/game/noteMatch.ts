@@ -30,6 +30,8 @@ export function semitoneDist(a: number, b: number): number {
  * Used to label interval enemies on-screen.
  */
 export const INTERVAL_NAMES: Record<number, string> = {
+  1: 'min 2nd',
+  2: 'Maj 2nd',
   3: 'min 3rd',
   4: 'Maj 3rd',
   5: '4th',
