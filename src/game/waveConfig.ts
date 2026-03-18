@@ -47,6 +47,21 @@ export function buildNoteSpawn(midiNote: number, color: string): EnemySpawnEntry
 }
 
 /**
+ * Build a chord spawn entry requiring multiple simultaneous notes.
+ * The label shows all note names joined with "+", e.g. "C4+E4+G4".
+ * targetNote is set to the first note in the array (root).
+ */
+export function buildChordSpawn(midiNotes: number[], color: string): EnemySpawnEntry {
+  return {
+    enemyType: 'chord',
+    targetNote: midiNotes[0],
+    targetNotes: midiNotes,
+    noteName: midiNotes.map(midiNoteToName).join('+'),
+    color,
+  }
+}
+
+/**
  * Build a wave of note enemies cycling through the allowed notes.
  */
 function buildWave(

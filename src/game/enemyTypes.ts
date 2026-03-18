@@ -7,10 +7,10 @@
  */
 export interface Enemy {
   id: string
-  enemyType: 'note' | 'interval'
+  enemyType: 'note' | 'interval' | 'chord'
   targetNote: number           // MIDI note number (primary target)
-  targetNotes?: [number, number] // MIDI pair for interval enemies
-  noteName: string             // Display label e.g. "C4" or "Maj 3rd"
+  targetNotes?: number[]       // MIDI notes for interval (2) or chord (2+) enemies
+  noteName: string             // Display label e.g. "C4", "Maj 3rd", or "C4+E4+G4"
   pathT: number                // 0–1 progress along the path
   speed: number                // pathT units per ms
   hp: number
@@ -27,9 +27,9 @@ export interface Enemy {
  * an Enemy via buildEnemy().
  */
 export interface EnemySpawnEntry {
-  enemyType: 'note' | 'interval'
+  enemyType: 'note' | 'interval' | 'chord'
   targetNote: number
-  targetNotes?: [number, number]
+  targetNotes?: number[]       // MIDI notes for interval (2) or chord (2+) enemies
   noteName: string
   color: string
 }
@@ -40,7 +40,7 @@ export interface EnemySpawnEntry {
  * - Interval enemies have hp 2 (harder to defeat, require a chord).
  */
 export function buildEnemy(entry: EnemySpawnEntry): Enemy {
-  const isInterval = entry.enemyType === 'interval'
+  const hp = entry.enemyType === 'chord' ? 3 : entry.enemyType === 'interval' ? 2 : 1
   return {
     id: crypto.randomUUID(),
     enemyType: entry.enemyType,
@@ -50,8 +50,8 @@ export function buildEnemy(entry: EnemySpawnEntry): Enemy {
     pathT: 0,
     // 0.00003 pathT/ms → ~33 seconds to cross full path at 60fps
     speed: 0.00003,
-    hp: isInterval ? 2 : 1,
-    maxHp: isInterval ? 2 : 1,
+    hp,
+    maxHp: hp,
     state: 'alive',
     defeatedFrames: 0,
     color: entry.color,

@@ -124,8 +124,7 @@ export function update(dt: number): void {
         (enemy) =>
           enemy.targetNote === event.note ||
           (enemy.targetNotes !== undefined &&
-            (enemy.targetNotes[0] === event.note ||
-              enemy.targetNotes[1] === event.note)),
+            enemy.targetNotes.includes(event.note)),
       )
       if (!matchesAnyEnemy && aliveEnemies.length > 0) {
         wrongNoteDetected = true

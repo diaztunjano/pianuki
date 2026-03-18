@@ -32,7 +32,20 @@ const INTERVAL_SPRITE_PATTERN = [
   '....#...',
 ]
 
-type SpriteType = 'note' | 'interval'
+const CHORD_SPRITE_PATTERN = [
+  '.######.',
+  '########',
+  '##.##.##',
+  '########',
+  '########',
+  '##.##.##',
+  '########',
+  '########',
+  '.######.',
+  '..####..',
+]
+
+type SpriteType = 'note' | 'interval' | 'chord'
 
 interface CachedSprite {
   canvas: OffscreenCanvas
@@ -50,7 +63,9 @@ function cacheKey(type: SpriteType, color: string, size: number): string {
  * Get the pixel pattern for a given sprite type.
  */
 function getPattern(type: SpriteType): string[] {
-  return type === 'note' ? NOTE_SPRITE_PATTERN : INTERVAL_SPRITE_PATTERN
+  if (type === 'note') return NOTE_SPRITE_PATTERN
+  if (type === 'chord') return CHORD_SPRITE_PATTERN
+  return INTERVAL_SPRITE_PATTERN
 }
 
 /**
