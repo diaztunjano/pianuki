@@ -1,4 +1,5 @@
 import type { Enemy } from '../enemyTypes'
+import { getSprite } from './sprites'
 
 /**
  * Interpolate a point along the L-shape path.
@@ -25,7 +26,7 @@ export function getLPathPoint(
 }
 
 /**
- * Draw alive enemies as colored circles with note labels.
+ * Draw alive enemies as pixel-art sprites with note labels.
  */
 export function drawEnemies(
   ctx: CanvasRenderingContext2D,
@@ -35,6 +36,7 @@ export function drawEnemies(
 ): void {
   const pathWidth = Math.max(48, width * 0.055)
   const enemyRadius = Math.max(20, pathWidth * 0.45)
+  const spriteSize = Math.round(enemyRadius * 2)
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
 
@@ -42,14 +44,14 @@ export function drawEnemies(
     if (enemy.state !== 'alive') continue
     const pos = getLPathPoint(enemy.pathT, width, height)
 
-    ctx.beginPath()
-    ctx.arc(pos.x, pos.y, enemyRadius, 0, Math.PI * 2)
-    ctx.fillStyle = enemy.color
-    ctx.fill()
-
-    ctx.strokeStyle = 'rgba(255,255,255,0.4)'
-    ctx.lineWidth = 1.5
-    ctx.stroke()
+    const sprite = getSprite(enemy.enemyType, enemy.color, spriteSize)
+    ctx.drawImage(
+      sprite,
+      pos.x - spriteSize / 2,
+      pos.y - spriteSize / 2,
+      spriteSize,
+      spriteSize,
+    )
 
     ctx.fillStyle = '#ffffff'
     ctx.font = `bold ${Math.max(11, enemyRadius * 0.55)}px sans-serif`

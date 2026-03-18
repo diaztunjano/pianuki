@@ -1,8 +1,9 @@
 import type { Enemy } from '../enemyTypes'
 import { getLPathPoint } from './enemies'
+import { getSprite } from './sprites'
 
 /**
- * Draw dying enemy effects — shrinking circle + expanding white ring.
+ * Draw dying enemy effects — shrinking sprite + expanding white ring.
  */
 export function drawAnimations(
   ctx: CanvasRenderingContext2D,
@@ -12,6 +13,7 @@ export function drawAnimations(
 ): void {
   const pathWidth = Math.max(48, width * 0.055)
   const enemyRadius = Math.max(20, pathWidth * 0.45)
+  const spriteSize = Math.round(enemyRadius * 2)
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
 
@@ -28,20 +30,23 @@ export function drawAnimations(
     ctx.lineWidth = 3
     ctx.stroke()
 
-    // Shrinking enemy circle
-    const shrunkRadius = enemyRadius * progress
-    if (shrunkRadius > 0) {
-      ctx.beginPath()
-      ctx.arc(pos.x, pos.y, shrunkRadius, 0, Math.PI * 2)
-      ctx.fillStyle = enemy.color
-      ctx.fill()
-
-      ctx.strokeStyle = 'rgba(255,255,255,0.4)'
-      ctx.lineWidth = 1.5
-      ctx.stroke()
+    // Shrinking sprite
+    const scale = progress
+    const shrunkSize = spriteSize * scale
+    if (shrunkSize > 1) {
+      ctx.globalAlpha = progress
+      const sprite = getSprite(enemy.enemyType, enemy.color, spriteSize)
+      ctx.drawImage(
+        sprite,
+        pos.x - shrunkSize / 2,
+        pos.y - shrunkSize / 2,
+        shrunkSize,
+        shrunkSize,
+      )
+      ctx.globalAlpha = 1
 
       ctx.fillStyle = '#ffffff'
-      ctx.font = `bold ${Math.max(11, shrunkRadius * 0.55)}px sans-serif`
+      ctx.font = `bold ${Math.max(11, (enemyRadius * scale) * 0.55)}px sans-serif`
       ctx.fillText(enemy.noteName, pos.x, pos.y)
     }
   }
