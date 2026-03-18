@@ -19,16 +19,22 @@ export function VirtualKeyboard() {
   const enemies = useBoundStore((s) => s.enemies)
   const gamePhase = useBoundStore((s) => s.gamePhase)
 
-  // Collect target notes from living enemies during gameplay
+  // Collect target notes from the frontmost alive enemy (highest pathT = closest to goal)
   const targetNotes = new Set<number>()
   if (gamePhase === 'playing') {
+    let frontmost: typeof enemies[number] | null = null
     for (const enemy of enemies) {
       if (enemy.state === 'alive') {
-        if (enemy.targetNotes) {
-          for (const n of enemy.targetNotes) targetNotes.add(n)
-        } else {
-          targetNotes.add(enemy.targetNote)
+        if (!frontmost || enemy.pathT > frontmost.pathT) {
+          frontmost = enemy
         }
+      }
+    }
+    if (frontmost) {
+      if (frontmost.targetNotes) {
+        for (const n of frontmost.targetNotes) targetNotes.add(n)
+      } else {
+        targetNotes.add(frontmost.targetNote)
       }
     }
   }
@@ -59,22 +65,26 @@ export function VirtualKeyboard() {
 
   const totalWhiteKeys = whiteKeys.length
 
-  const getWhiteKeyClass = (midi: number): string => {
-    const isActive = activeNotes.has(midi)
-    const isTarget = targetNotes.has(midi)
-    if (isActive && isTarget) return 'bg-emerald-400'
-    if (isActive) return 'bg-cyan-400'
-    if (isTarget) return 'bg-amber-300'
-    return 'bg-white'
+  const hintStyle: React.CSSProperties = {
+    animation: 'hint-pulse 1.2s ease-in-out infinite',
   }
 
-  const getBlackKeyClass = (midi: number): string => {
+  const getWhiteKeyStyle = (midi: number): { className: string; style?: React.CSSProperties } => {
     const isActive = activeNotes.has(midi)
     const isTarget = targetNotes.has(midi)
-    if (isActive && isTarget) return 'bg-emerald-500'
-    if (isActive) return 'bg-cyan-500'
-    if (isTarget) return 'bg-amber-500'
-    return 'bg-gray-950'
+    if (isActive && isTarget) return { className: 'bg-emerald-400', style: hintStyle }
+    if (isActive) return { className: 'bg-cyan-400' }
+    if (isTarget) return { className: 'bg-amber-300', style: hintStyle }
+    return { className: 'bg-white' }
+  }
+
+  const getBlackKeyStyle = (midi: number): { className: string; style?: React.CSSProperties } => {
+    const isActive = activeNotes.has(midi)
+    const isTarget = targetNotes.has(midi)
+    if (isActive && isTarget) return { className: 'bg-emerald-500', style: hintStyle }
+    if (isActive) return { className: 'bg-cyan-500' }
+    if (isTarget) return { className: 'bg-amber-500', style: hintStyle }
+    return { className: 'bg-gray-950' }
   }
 
   return (
@@ -87,11 +97,12 @@ export function VirtualKeyboard() {
             {whiteKeys.map((midi) => {
               const semitone = midi % 12
               const showLabel = semitone === 0 // Label C notes
+              const { className: keyClass, style: keyStyle } = getWhiteKeyStyle(midi)
               return (
                 <div
                   key={midi}
-                  className={`relative flex-1 rounded-b transition-colors duration-75 ${getWhiteKeyClass(midi)}`}
-                  style={{ minWidth: '34px' }}
+                  className={`relative flex-1 rounded-b transition-colors duration-75 ${keyClass}`}
+                  style={{ minWidth: '34px', ...keyStyle }}
                 >
                   {showLabel && (
                     <span className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px] font-mono text-gray-500 select-none">
@@ -108,15 +119,17 @@ export function VirtualKeyboard() {
             const prevWhiteIdx = getBlackKeyPosition(midi)
             const leftPx = (prevWhiteIdx + 0.65) * 36
             const widthPx = 22
+            const { className: keyClass, style: keyStyle } = getBlackKeyStyle(midi)
 
             return (
               <div
                 key={midi}
-                className={`absolute top-0 rounded-b transition-colors duration-75 ${getBlackKeyClass(midi)}`}
+                className={`absolute top-0 rounded-b transition-colors duration-75 ${keyClass}`}
                 style={{
                   left: `${leftPx}px`,
                   width: `${widthPx}px`,
                   height: '65%',
+                  ...keyStyle,
                 }}
               />
             )
