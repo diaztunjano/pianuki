@@ -34,12 +34,17 @@ export interface EnemySpawnEntry {
   color: string
 }
 
+/** Default enemy speed: 0.00003 pathT/ms → ~33 seconds to cross the full path. */
+export const DEFAULT_ENEMY_SPEED = 0.00003
+
 /**
  * Factory that creates a live Enemy from a spawn entry.
  * - Note enemies have hp 1.
  * - Interval enemies have hp 2 (harder to defeat, require a chord).
+ * - Chord enemies have hp 3.
+ * @param speed - pathT units per ms. Defaults to DEFAULT_ENEMY_SPEED.
  */
-export function buildEnemy(entry: EnemySpawnEntry): Enemy {
+export function buildEnemy(entry: EnemySpawnEntry, speed: number = DEFAULT_ENEMY_SPEED): Enemy {
   const hp = entry.enemyType === 'chord' ? 3 : entry.enemyType === 'interval' ? 2 : 1
   return {
     id: crypto.randomUUID(),
@@ -48,8 +53,7 @@ export function buildEnemy(entry: EnemySpawnEntry): Enemy {
     targetNotes: entry.targetNotes,
     noteName: entry.noteName,
     pathT: 0,
-    // 0.00003 pathT/ms → ~33 seconds to cross full path at 60fps
-    speed: 0.00003,
+    speed,
     hp,
     maxHp: hp,
     state: 'alive',

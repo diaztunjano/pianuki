@@ -19,6 +19,7 @@ export interface LevelConfig {
   noteRangeLabel: string
   allowedNotes: number[]  // MIDI note numbers the player must play
   waves: WaveConfig[]
+  baseSpeed?: number      // pathT/ms override for enemy speed (default: DEFAULT_ENEMY_SPEED)
 }
 
 /** Repeating color palette assigned to enemies by note index. */

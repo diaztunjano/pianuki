@@ -5,6 +5,7 @@ import { enableMapSet } from 'immer'
 import { Enemy, EnemySpawnEntry, buildEnemy } from '../game/enemyTypes'
 import { LEVEL_CONFIGS } from '../game/waveConfig'
 import { resetStats } from '../game/statsTracker'
+import { resetDifficulty } from '../game/difficulty'
 import { clearAnimationState } from '../game/renderer/animations'
 
 // Enable immer support for Set/Map (needed for activeNotes: Set<number>)
@@ -143,7 +144,7 @@ interface GameSlice {
   pauseGame: () => void
   resumeGame: () => void
   advanceWave: () => void
-  spawnEnemy: (entry: EnemySpawnEntry) => void
+  spawnEnemy: (entry: EnemySpawnEntry, speed?: number) => void
   damageEnemy: (id: string, damage: number) => void
   tickDyingEnemies: () => void
   removeDeadEnemies: () => void
@@ -187,6 +188,7 @@ const createGameSlice: StateCreator<
 
   startLevel: (levelIndex) => {
     resetStats()
+    resetDifficulty()
     clearAnimationState()
     set(
       (draft) => {
@@ -213,6 +215,7 @@ const createGameSlice: StateCreator<
 
   startGame: (levelIndex) => {
     resetStats()
+    resetDifficulty()
     clearAnimationState()
     set(
       (draft) => {
@@ -280,10 +283,10 @@ const createGameSlice: StateCreator<
       'game/advanceWave',
     ),
 
-  spawnEnemy: (entry) =>
+  spawnEnemy: (entry, speed?) =>
     set(
       (draft) => {
-        draft.enemies.push(buildEnemy(entry))
+        draft.enemies.push(buildEnemy(entry, speed))
       },
       false,
       'game/spawnEnemy',

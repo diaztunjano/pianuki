@@ -2,6 +2,9 @@ import { useBoundStore } from '../stores'
 import { isNoteMatch } from './noteMatch'
 import { recordEnemySpawned, recordCorrectHit, recordMiss, computeLevelResult } from './statsTracker'
 import { playCorrect, playWrong, playEnemyDeath } from '../audio/sfxManager'
+import { getSpawnMultiplier, getSpeedMultiplier, recordHit, recordMissOutcome } from './difficulty'
+import { LEVEL_CONFIGS } from './waveConfig'
+import { DEFAULT_ENEMY_SPEED } from './enemyTypes'
 import type { Enemy } from './enemyTypes'
 
 // Module-level state for wrong-note detection
@@ -15,15 +18,18 @@ let lastCheckedEventTs = 0
  */
 export function update(dt: number): void {
   // -------------------------------------------------------------------
-  // Step 1: Spawn enemies from the queue
+  // Step 1: Spawn enemies from the queue (adaptive spawn interval)
   // -------------------------------------------------------------------
   const spawnState = useBoundStore.getState()
   if (spawnState.spawnQueue.length > 0) {
     const newAccumulator = spawnState.spawnAccumulator + dt
-    if (newAccumulator >= spawnState.spawnIntervalMs) {
-      // Pop the first entry and spawn it
+    const adjustedInterval = spawnState.spawnIntervalMs * getSpawnMultiplier()
+    if (newAccumulator >= adjustedInterval) {
+      // Pop the first entry and spawn it with level-specific speed
       const entry = spawnState.spawnQueue[0]
-      useBoundStore.getState().spawnEnemy(entry)
+      const levelConfig = LEVEL_CONFIGS[spawnState.currentLevel]
+      const baseSpeed = levelConfig?.baseSpeed ?? DEFAULT_ENEMY_SPEED
+      useBoundStore.getState().spawnEnemy(entry, baseSpeed * getSpeedMultiplier())
       recordEnemySpawned()
       // Remove the entry from the queue and reset accumulator
       useBoundStore.setState((s) => {
@@ -54,6 +60,7 @@ export function update(dt: number): void {
   const { penaltyMode } = postMoveState.settings
   for (const enemy of postMoveState.enemies) {
     if (enemy.pathT >= 1.0 && enemy.state === 'alive') {
+      recordMissOutcome()
       if (penaltyMode === 'easy') {
         // No penalty — just kill the enemy silently
         useBoundStore.setState((s) => {
@@ -93,6 +100,7 @@ export function update(dt: number): void {
       const hitTimeMs = performance.now()
       const reactionMs = hitTimeMs - enemy.spawnedAtMs
       recordCorrectHit(reactionMs)
+      recordHit()
       useBoundStore.getState().damageEnemy(enemy.id, 1)
       // Only play chime on the killing blow to avoid double-chime on multi-HP enemies
       const updatedEnemy = useBoundStore.getState().enemies.find((e) => e.id === enemy.id)
