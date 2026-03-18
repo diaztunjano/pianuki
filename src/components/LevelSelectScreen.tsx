@@ -13,6 +13,11 @@ const NODE_POSITIONS = [
   { x: '75%', y: 280 },  // Level 2 — right
   { x: '50%', y: 380 },  // Level 3 — center
   { x: '25%', y: 480 },  // Level 4 — left
+  { x: '50%', y: 580 },  // Level 5 — center
+  { x: '75%', y: 680 },  // Level 6 — right
+  { x: '50%', y: 780 },  // Level 7 — center
+  { x: '25%', y: 880 },  // Level 8 — left
+  { x: '50%', y: 980 },  // Level 9 — center
 ]
 
 /** Width/height of each circular node in px */
@@ -63,7 +68,7 @@ export function LevelSelectScreen() {
   const levels = progress.levels
 
   // Container height accommodates all nodes + padding
-  const containerHeight = 580
+  const containerHeight = 1080
 
   // Build SVG quadratic bezier path connecting all node centers.
   // We need to convert percentage x to an assumed width (we use 320px as reference

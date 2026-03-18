@@ -10,11 +10,11 @@ export function isNoteMatch(enemy: Enemy, activeNotes: Set<number>): boolean {
   if (enemy.enemyType === 'note') {
     return activeNotes.has(enemy.targetNote)
   }
-  // interval: require both notes held at the same time
+  // interval and chord: require all notes held at the same time
   return (
     enemy.targetNotes !== undefined &&
-    activeNotes.has(enemy.targetNotes[0]) &&
-    activeNotes.has(enemy.targetNotes[1])
+    enemy.targetNotes.length > 0 &&
+    enemy.targetNotes.every((note) => activeNotes.has(note))
   )
 }
 
@@ -30,6 +30,8 @@ export function semitoneDist(a: number, b: number): number {
  * Used to label interval enemies on-screen.
  */
 export const INTERVAL_NAMES: Record<number, string> = {
+  1: 'min 2nd',
+  2: 'Maj 2nd',
   3: 'min 3rd',
   4: 'Maj 3rd',
   5: '4th',
