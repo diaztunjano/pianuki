@@ -213,6 +213,7 @@ const createGameSlice: StateCreator<
 
   startGame: (levelIndex) => {
     resetStats()
+    clearAnimationState()
     set(
       (draft) => {
         const level = LEVEL_CONFIGS[levelIndex]
