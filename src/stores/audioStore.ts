@@ -5,6 +5,7 @@ import { enableMapSet } from 'immer'
 import { Enemy, EnemySpawnEntry, buildEnemy } from '../game/enemyTypes'
 import { LEVEL_CONFIGS } from '../game/waveConfig'
 import { resetStats } from '../game/statsTracker'
+import { clearAnimationState } from '../game/renderer/animations'
 
 // Enable immer support for Set/Map (needed for activeNotes: Set<number>)
 enableMapSet()
@@ -186,6 +187,7 @@ const createGameSlice: StateCreator<
 
   startLevel: (levelIndex) => {
     resetStats()
+    clearAnimationState()
     set(
       (draft) => {
         const level = LEVEL_CONFIGS[levelIndex]
@@ -211,6 +213,7 @@ const createGameSlice: StateCreator<
 
   startGame: (levelIndex) => {
     resetStats()
+    clearAnimationState()
     set(
       (draft) => {
         const level = LEVEL_CONFIGS[levelIndex]
@@ -362,8 +365,9 @@ const createGameSlice: StateCreator<
       'game/tickWrongNoteFlash',
     ),
 
-  resetGame: () =>
-    set(
+  resetGame: () => {
+    clearAnimationState()
+    return set(
       (draft) => {
         draft.gamePhase = 'idle'
         draft.playerHP = 5
@@ -380,7 +384,8 @@ const createGameSlice: StateCreator<
       },
       false,
       'game/resetGame',
-    ),
+    )
+  },
 })
 
 // --- Progress Slice ---
