@@ -7,6 +7,7 @@ import { LevelSelectScreen } from './LevelSelectScreen'
 import { StatsScreen } from './StatsScreen'
 import { OnboardingScreen } from './OnboardingScreen'
 import { MicExplainScreen } from './MicExplainScreen'
+import { VirtualKeyboard } from './VirtualKeyboard'
 import { useMidiInput } from '../hooks/useMidiInput'
 import { useAudioInput } from '../hooks/useAudioInput'
 import { useBoundStore } from '../stores'
@@ -33,6 +34,7 @@ export function AppShell() {
   const [micEnabled, setMicEnabled] = useState(false)
   const currentScreen = useBoundStore((s) => s.currentScreen)
   const hasSeenOnboarding = useBoundStore((s) => s.settings.hasSeenOnboarding)
+  const showVirtualKeyboard = useBoundStore((s) => s.settings.showVirtualKeyboard)
 
   // Mic permission state — checked once on mount to determine whether to show
   // the mic explain screen (permission 'prompt') or skip directly to the enable button
@@ -76,6 +78,10 @@ export function AppShell() {
         const { gamePhase, pauseGame, resumeGame } = useBoundStore.getState()
         if (gamePhase === 'playing') pauseGame()
         else if (gamePhase === 'paused') resumeGame()
+      }
+      if ((e.key === 'k' || e.key === 'K') && !e.repeat) {
+        const { settings, setShowVirtualKeyboard } = useBoundStore.getState()
+        setShowVirtualKeyboard(!settings.showVirtualKeyboard)
       }
     }
     window.addEventListener('keydown', handleKeyDown)
@@ -126,6 +132,8 @@ export function AppShell() {
               </div>
             )
           )}
+
+          {showVirtualKeyboard && <VirtualKeyboard />}
 
           {import.meta.env.DEV && <DebugPanel />}
         </div>

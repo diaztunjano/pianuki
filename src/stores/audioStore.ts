@@ -60,6 +60,7 @@ export interface PersistedState {
     hasSeenOnboarding: boolean
     sfxEnabled: boolean
     sfxVolume: number
+    showVirtualKeyboard: boolean
   }
 }
 
@@ -481,6 +482,7 @@ interface SettingsSlice {
     hasSeenOnboarding: boolean     // first-run gate, default false
     sfxEnabled: boolean            // SFX mute toggle, default true
     sfxVolume: number              // 0..1, default 0.5
+    showVirtualKeyboard: boolean   // toggleable overlay, default false
   }
   setPenaltyMode: (mode: 'easy' | 'normal' | 'hard') => void
   setInputSource: (source: 'mic' | 'midi') => void
@@ -488,6 +490,7 @@ interface SettingsSlice {
   markOnboardingSeen: () => void
   setSfxEnabled: (enabled: boolean) => void
   setSfxVolume: (volume: number) => void
+  setShowVirtualKeyboard: (show: boolean) => void
 }
 
 const createSettingsSlice: StateCreator<
@@ -503,6 +506,7 @@ const createSettingsSlice: StateCreator<
     hasSeenOnboarding: false,
     sfxEnabled: true,
     sfxVolume: 0.5,
+    showVirtualKeyboard: false,
   },
 
   setPenaltyMode: (mode) =>
@@ -558,6 +562,15 @@ const createSettingsSlice: StateCreator<
       false,
       'settings/setSfxVolume',
     ),
+
+  setShowVirtualKeyboard: (show) =>
+    set(
+      (draft) => {
+        draft.settings.showVirtualKeyboard = show
+      },
+      false,
+      'settings/setShowVirtualKeyboard',
+    ),
 })
 
 // --- Bound Store ---
@@ -576,7 +589,7 @@ export const useBoundStore = create<BoundStore>()(
       {
         name: 'pianuki-progress',
         storage: createJSONStorage(() => localStorage),
-        version: 3,
+        version: 4,
         partialize: (state): PersistedState => ({
           progress: state.progress,
           settings: state.settings,
@@ -590,6 +603,9 @@ export const useBoundStore = create<BoundStore>()(
           if (version < 3) {
             state.settings.sfxEnabled = state.settings.sfxEnabled ?? true
             state.settings.sfxVolume = state.settings.sfxVolume ?? 0.5
+          }
+          if (version < 4) {
+            state.settings.showVirtualKeyboard = state.settings.showVirtualKeyboard ?? false
           }
           return state
         },
