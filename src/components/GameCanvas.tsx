@@ -21,7 +21,7 @@ function drawFrame(
 ): void {
   const state = useBoundStore.getState()
 
-  drawBackground(ctx, width, height, state.wrongNoteFlashFrames)
+  drawBackground(ctx, width, height, state.wrongNoteFlashFrames, state.currentLevel)
   drawEnemies(ctx, width, height, state.enemies)
   drawAnimations(ctx, width, height, state.enemies)
   drawHud(ctx, width, height, {
