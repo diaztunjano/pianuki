@@ -19,11 +19,13 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
   const latencyOffsetMs = useBoundStore((s) => s.settings.latencyOffsetMs)
   const sfxEnabled = useBoundStore((s) => s.settings.sfxEnabled)
   const sfxVolume = useBoundStore((s) => s.settings.sfxVolume)
+  const showVirtualKeyboard = useBoundStore((s) => s.settings.showVirtualKeyboard)
   const setPenaltyMode = useBoundStore((s) => s.setPenaltyMode)
   const setInputSource = useBoundStore((s) => s.setInputSource)
   const setLatencyOffset = useBoundStore((s) => s.setLatencyOffset)
   const setSfxEnabled = useBoundStore((s) => s.setSfxEnabled)
   const setSfxVolume = useBoundStore((s) => s.setSfxVolume)
+  const setShowVirtualKeyboard = useBoundStore((s) => s.setShowVirtualKeyboard)
 
   const cardClass =
     'flex flex-col gap-8 rounded-2xl bg-gray-900/90 border border-white/10 px-12 py-10 text-white shadow-2xl backdrop-blur-sm w-full max-w-md'
@@ -160,6 +162,24 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
           )}
           <p className="text-xs text-white/40">
             Toggle game sound effects without affecting microphone input.
+          </p>
+        </div>
+
+        {/* Virtual Keyboard */}
+        <div className="flex flex-col gap-3">
+          <label className="text-sm font-semibold text-white/70 tracking-wider uppercase">
+            Virtual Keyboard
+          </label>
+          <div className="flex items-center gap-3">
+            <button
+              className={showVirtualKeyboard ? activeBtnClass : inactiveBtnClass}
+              onClick={() => setShowVirtualKeyboard(!showVirtualKeyboard)}
+            >
+              {showVirtualKeyboard ? 'On' : 'Off'}
+            </button>
+          </div>
+          <p className="text-xs text-white/40">
+            Show a 2-octave keyboard overlay during gameplay. Toggle with K key.
           </p>
         </div>
 

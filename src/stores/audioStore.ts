@@ -5,6 +5,7 @@ import { enableMapSet } from 'immer'
 import { Enemy, EnemySpawnEntry, buildEnemy } from '../game/enemyTypes'
 import { LEVEL_CONFIGS } from '../game/waveConfig'
 import { resetStats } from '../game/statsTracker'
+import { resetDifficulty } from '../game/difficulty'
 import { clearAnimationState } from '../game/renderer/animations'
 
 // Enable immer support for Set/Map (needed for activeNotes: Set<number>)
@@ -59,6 +60,7 @@ export interface PersistedState {
     hasSeenOnboarding: boolean
     sfxEnabled: boolean
     sfxVolume: number
+    showVirtualKeyboard: boolean
   }
 }
 
@@ -143,7 +145,7 @@ interface GameSlice {
   pauseGame: () => void
   resumeGame: () => void
   advanceWave: () => void
-  spawnEnemy: (entry: EnemySpawnEntry) => void
+  spawnEnemy: (entry: EnemySpawnEntry, speed?: number) => void
   damageEnemy: (id: string, damage: number) => void
   tickDyingEnemies: () => void
   removeDeadEnemies: () => void
@@ -187,6 +189,7 @@ const createGameSlice: StateCreator<
 
   startLevel: (levelIndex) => {
     resetStats()
+    resetDifficulty()
     clearAnimationState()
     set(
       (draft) => {
@@ -213,6 +216,7 @@ const createGameSlice: StateCreator<
 
   startGame: (levelIndex) => {
     resetStats()
+    resetDifficulty()
     clearAnimationState()
     set(
       (draft) => {
@@ -280,10 +284,10 @@ const createGameSlice: StateCreator<
       'game/advanceWave',
     ),
 
-  spawnEnemy: (entry) =>
+  spawnEnemy: (entry, speed?) =>
     set(
       (draft) => {
-        draft.enemies.push(buildEnemy(entry))
+        draft.enemies.push(buildEnemy(entry, speed))
       },
       false,
       'game/spawnEnemy',
@@ -478,6 +482,7 @@ interface SettingsSlice {
     hasSeenOnboarding: boolean     // first-run gate, default false
     sfxEnabled: boolean            // SFX mute toggle, default true
     sfxVolume: number              // 0..1, default 0.5
+    showVirtualKeyboard: boolean   // toggleable overlay, default false
   }
   setPenaltyMode: (mode: 'easy' | 'normal' | 'hard') => void
   setInputSource: (source: 'mic' | 'midi') => void
@@ -485,6 +490,7 @@ interface SettingsSlice {
   markOnboardingSeen: () => void
   setSfxEnabled: (enabled: boolean) => void
   setSfxVolume: (volume: number) => void
+  setShowVirtualKeyboard: (show: boolean) => void
 }
 
 const createSettingsSlice: StateCreator<
@@ -500,6 +506,7 @@ const createSettingsSlice: StateCreator<
     hasSeenOnboarding: false,
     sfxEnabled: true,
     sfxVolume: 0.5,
+    showVirtualKeyboard: false,
   },
 
   setPenaltyMode: (mode) =>
@@ -555,6 +562,15 @@ const createSettingsSlice: StateCreator<
       false,
       'settings/setSfxVolume',
     ),
+
+  setShowVirtualKeyboard: (show) =>
+    set(
+      (draft) => {
+        draft.settings.showVirtualKeyboard = show
+      },
+      false,
+      'settings/setShowVirtualKeyboard',
+    ),
 })
 
 // --- Bound Store ---
@@ -573,7 +589,7 @@ export const useBoundStore = create<BoundStore>()(
       {
         name: 'pianuki-progress',
         storage: createJSONStorage(() => localStorage),
-        version: 3,
+        version: 4,
         partialize: (state): PersistedState => ({
           progress: state.progress,
           settings: state.settings,
@@ -587,6 +603,9 @@ export const useBoundStore = create<BoundStore>()(
           if (version < 3) {
             state.settings.sfxEnabled = state.settings.sfxEnabled ?? true
             state.settings.sfxVolume = state.settings.sfxVolume ?? 0.5
+          }
+          if (version < 4) {
+            state.settings.showVirtualKeyboard = state.settings.showVirtualKeyboard ?? false
           }
           return state
         },
